@@ -15,10 +15,7 @@ export default function RootLayout({
   return (
     <html lang="mn">
       <body className="flex bg-gray-50 min-h-screen">
-        {/* Хажуугийн цэс */}
         <Sidebar />
-        
-        {/* Хуудасны үндсэн контент */}
         <main className="flex-1 p-8">{children}</main>
       </body>
     </html>
