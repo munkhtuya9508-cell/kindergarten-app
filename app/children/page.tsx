@@ -12,7 +12,7 @@ export default function ChildrenPage() {
 
   const handleDelete = (e: React.MouseEvent, id: string, name: string) => {
     e.stopPropagation();
-    if (confirm(`${name}-г устгахдаа суртай байна уу?`)) {
+    if (confirm(`${name}-г устгахдаа итгэлтэй байна уу?`)) {
       setChildren(children.filter((child) => child.id !== id));
     }
   };
