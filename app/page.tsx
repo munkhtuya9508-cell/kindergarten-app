@@ -26,6 +26,7 @@ export default function HomePage() {
           </span>
         </div>
 
+        {/* Графикийн талбар */}
         <div className="relative h-64 w-full flex">
           <div className="flex flex-col justify-between text-xs text-gray-400 pr-4 pb-6">
             <span>100</span>
