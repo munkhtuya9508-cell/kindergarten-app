@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ImageIcon, Video, Trash2, Upload } from "lucide-react";
+import { ImageIcon, Video, Trash2, Upload, Calendar } from "lucide-react";
 
 interface ObservationItem {
   id: string;
@@ -21,6 +21,9 @@ export default function ObservationsPage() {
 
   const [observations, setObservations] = useState<ObservationItem[]>([]);
   const [selectedChild, setSelectedChild] = useState(childrenList[0]);
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [note, setNote] = useState("");
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
@@ -46,7 +49,7 @@ export default function ObservationsPage() {
     const newObs: ObservationItem = {
       id: Date.now().toString(),
       childName: selectedChild,
-      date: new Date().toISOString().split("T")[0],
+      date: selectedDate,
       note,
       mediaUrl: mediaPreview || undefined,
       mediaType: mediaType || undefined,
@@ -59,7 +62,7 @@ export default function ObservationsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-5xl">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           Ажиглалт бичих 👁️
@@ -78,6 +81,7 @@ export default function ObservationsPage() {
             </h2>
           </div>
 
+          {/* Хүүхэд сонгох */}
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">
               Хүүхэд сонгох:
@@ -95,6 +99,21 @@ export default function ObservationsPage() {
             </select>
           </div>
 
+          {/* Огноо сонгох (Шинээр нэмэгдсэн) */}
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              Огноо сонгох:
+            </label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500 bg-white text-gray-700"
+              required
+            />
+          </div>
+
+          {/* Ажиглалтын тэмдэглэл */}
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">
               Ажиглалтын тэмдэглэл:
@@ -109,6 +128,7 @@ export default function ObservationsPage() {
             ></textarea>
           </div>
 
+          {/* Зураг / Бичлэг оруулах */}
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">
               Зураг эсвэл Бичлэг оруулна уу:
@@ -167,9 +187,13 @@ export default function ObservationsPage() {
 
         {/* Бүртгэгдсэн ажиглалтууд */}
         <div className="space-y-4">
-          <h2 className="text-sm font-bold text-gray-800">Бүртгэгдсэн ажиглалтууд</h2>
+          <h2 className="text-sm font-bold text-gray-800">
+            Бүртгэгдсэн ажиглалтууд
+          </h2>
           {observations.length === 0 ? (
-            <p className="text-xs text-gray-400">Одоогоор ажиглалт бүртгэгдээгүй байна.</p>
+            <p className="text-xs text-gray-400">
+              Одоогоор ажиглалт бүртгэгдээгүй байна.
+            </p>
           ) : (
             observations.map((item) => (
               <div
@@ -177,10 +201,16 @@ export default function ObservationsPage() {
                 className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-2"
               >
                 <div className="flex justify-between items-center text-xs">
-                  <span className="font-bold text-pink-600">{item.childName}</span>
-                  <span className="text-gray-400">{item.date}</span>
+                  <span className="font-bold text-pink-600">
+                    {item.childName}
+                  </span>
+                  <span className="text-gray-400 flex items-center gap-1">
+                    <Calendar size={12} /> {item.date}
+                  </span>
                 </div>
-                <p className="text-xs text-gray-600 leading-relaxed">{item.note}</p>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  {item.note}
+                </p>
                 {item.mediaUrl && (
                   <div className="pt-1">
                     {item.mediaType === "image" ? (
