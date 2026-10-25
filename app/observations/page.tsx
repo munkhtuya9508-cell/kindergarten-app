@@ -14,6 +14,9 @@ interface ObservationItem {
 }
 
 export default function ObservationsPage() {
+  // Бэлтгэл Б бүлгийн хүүхдүүдийн жагсаалт
+  const childrenList = ["А. Болд", "Б. Болор", "Д. Бат", "Э. Наран", "Ц. Цэцэг"];
+
   const [observations, setObservations] = useState<ObservationItem[]>([
     {
       id: "1",
@@ -24,7 +27,7 @@ export default function ObservationsPage() {
     },
   ]);
 
-  const [childName, setChildName] = useState("");
+  const [selectedChild, setSelectedChild] = useState(childrenList[0]);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [category, setCategory] = useState("Нийгэмшихүй");
   const [note, setNote] = useState("");
@@ -32,7 +35,7 @@ export default function ObservationsPage() {
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
 
-  // Файл сонгох үед preview үүсгэх
+  // Зураг / Бичлэг файл сонгох үед preview үүсгэх
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -55,11 +58,11 @@ export default function ObservationsPage() {
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!childName || !note) return;
+    if (!selectedChild || !note) return;
 
     const newObs: ObservationItem = {
       id: Date.now().toString(),
-      childName,
+      childName: selectedChild,
       date,
       category,
       note,
@@ -68,7 +71,6 @@ export default function ObservationsPage() {
     };
 
     setObservations([newObs, ...observations]);
-    setChildName("");
     setNote("");
     setMediaFile(null);
     setMediaPreview(null);
@@ -82,7 +84,7 @@ export default function ObservationsPage() {
           Ажиглалтын Тэмдэглэл 👁️
         </h1>
         <p className="text-gray-400 text-sm mt-1">
-          Хүүхдийн өдөр тутмын ахиц хөгжлийг огноо, зураг, бичлэгтэйгээр тэмдэглэх хэсэг
+          Хүүхдийг сонгож огноо, ажиглалт, зураг болон бичлэгтэйгээр тэмдэглэх хэсэг
         </p>
       </div>
 
@@ -96,19 +98,22 @@ export default function ObservationsPage() {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Хүүхдийн нэр */}
+          {/* Хүүхэд сонгох (Select) */}
           <div>
             <label className="block text-xs text-gray-500 mb-1">
-              Хүүхдийн нэр
+              Хүүхэд сонгох
             </label>
-            <input
-              type="text"
-              placeholder="жишээ нь: А. Болд"
-              value={childName}
-              onChange={(e) => setChildName(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500"
-              required
-            />
+            <select
+              value={selectedChild}
+              onChange={(e) => setSelectedChild(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500 bg-white font-medium text-gray-800"
+            >
+              {childrenList.map((child) => (
+                <option key={child} value={child}>
+                  {child}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Огноо сонгох */}
@@ -169,12 +174,3 @@ export default function ObservationsPage() {
               <ImageIcon size={18} />
               <Video size={18} />
               <span>Зураг/Бичлэг сонгох</span>
-              <input
-                type="file"
-                accept="image/*,video/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-            </label>
-
-            {mediaPreview && (
