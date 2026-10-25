@@ -1,65 +1,94 @@
 "use client";
 
+import { useState } from "react";
+import { Pencil, Trash2, ChevronRight, UserPlus } from "lucide-react";
 import Link from "next/link";
-import { LayoutDashboard, Users, Eye, MessageSquare, FileText } from "lucide-react";
 
-export default function HomePage() {
+export default function ChildrenPage() {
+  const [children, setChildren] = useState([
+    { id: "1", name: "А. Болд", dob: "2021-05-12", group: "Бэлтгэл Б бүлэг" },
+    { id: "2", name: "Б. Болор", dob: "2021-08-20", group: "Бэлтгэл Б бүлэг" },
+  ]);
+
+  const handleDelete = (e: React.MouseEvent, id: string, name: string) => {
+    e.stopPropagation();
+    if (confirm(`${name}-г устгахдаа суртай байна уу?`)) {
+      setChildren(children.filter((child) => child.id !== id));
+    }
+  };
+
+  const handleEdit = (e: React.MouseEvent, child: any) => {
+    e.stopPropagation();
+    const newName = prompt("Шинэ нэрийг оруулна уу:", child.name);
+    if (newName && newName.trim() !== "") {
+      setChildren(
+        children.map((c) => (c.id === child.id ? { ...c, name: newName } : c))
+      );
+    }
+  };
+
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Хажуугийн Цэс (Sidebar) */}
-      <aside className="w-64 bg-white border-r border-gray-200 p-6 flex flex-col gap-6">
-        <h1 className="text-xl font-bold text-pink-600 flex items-center gap-2">
-          🌸 Хөгжлийн Хуудас
-        </h1>
+    <div className="max-w-4xl">
+      <div className="flex justify-between items-start mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            Бэлтгэл Б бүлгийн хүүхдүүд 👶
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Хүүхдийн нэр дээр дарж дэлгэрэнгүй ахиц, ажиглалт, ярилцлагыг харна уу
+          </p>
+        </div>
+        <button className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition">
+          <UserPlus size={18} />
+          + Шинэ хүүхэд нэмэх
+        </button>
+      </div>
 
-        <nav className="flex flex-col gap-2">
-          <Link
-            href="/"
-            className="flex items-center gap-3 px-4 py-3 text-pink-600 bg-pink-50 rounded-xl font-medium"
+      <div className="space-y-4">
+        {children.map((child) => (
+          <div
+            key={child.id}
+            className="border border-gray-200 rounded-2xl p-5 flex items-center justify-between hover:shadow-md transition bg-white"
           >
-            <LayoutDashboard size={20} />
-            <span>Нүүр</span>
-          </Link>
+            <div>
+              <h3 className="text-lg font-semibold text-pink-600">
+                {child.name}
+              </h3>
+              <p className="text-gray-500 text-xs mt-2">
+                Төрсөн огноо: {child.dob}
+              </p>
+              <p className="text-gray-400 text-xs">{child.group}</p>
+            </div>
 
-          <Link
-            href="/children"
-            className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-pink-50 hover:text-pink-600 rounded-xl transition"
-          >
-            <Users size={20} />
-            <span>Хүүхдүүд</span>
-          </Link>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={(e) => handleEdit(e, child)}
+                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                title="Засах"
+              >
+                <Pencil size={18} />
+              </button>
 
-          <Link
-            href="/observations"
-            className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-pink-50 hover:text-pink-600 rounded-xl transition"
-          >
-            <Eye size={20} />
-            <span>Ажиглалт</span>
-          </Link>
+              <button
+                type="button"
+                onClick={(e) => handleDelete(e, child.id, child.name)}
+                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                title="Устгах"
+              >
+                <Trash2 size={18} />
+              </button>
 
-          <Link
-            href="/interviews"
-            className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-pink-50 hover:text-pink-600 rounded-xl transition"
-          >
-            <MessageSquare size={20} />
-            <span>Ярилцлага</span>
-          </Link>
-
-          <Link
-            href="/reports"
-            className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-pink-50 hover:text-pink-600 rounded-xl transition"
-          >
-            <FileText size={20} />
-            <span>Тайлан & Хэвлэх</span>
-          </Link>
-        </nav>
-      </aside>
-
-      {/* Үндсэн Нүүр хуудасны контент */}
-      <main className="flex-1 p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Нүүр хуудас</h1>
-        <p className="text-gray-600">Цэцэрлэгийн удирдлагын системд тайван морилно уу.</p>
-      </main>
+              <Link
+                href={`/children/${child.id}`}
+                className="p-2 text-gray-400 hover:text-gray-600"
+              >
+                <ChevronRight size={20} />
+              </Link>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
