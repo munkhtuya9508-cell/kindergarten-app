@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ImageIcon, Video, Trash2, Send } from "lucide-react";
+import { ImageIcon, Video, Trash2, Send, Calendar } from "lucide-react";
 
 interface InterviewItem {
   id: string;
@@ -23,6 +23,9 @@ export default function InterviewsPage() {
   const [interviews, setInterviews] = useState<InterviewItem[]>([]);
   const [selectedChild, setSelectedChild] = useState(childrenList[0]);
   const [type, setType] = useState("Хүүхдэдтэй хийсэн ярилцлага");
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [note, setNote] = useState("");
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
@@ -49,7 +52,7 @@ export default function InterviewsPage() {
       id: Date.now().toString(),
       childName: selectedChild,
       type,
-      date: new Date().toISOString().split("T")[0],
+      date: selectedDate,
       note,
       mediaUrl: mediaPreview || undefined,
       mediaType: mediaType || undefined,
@@ -81,6 +84,7 @@ export default function InterviewsPage() {
             </h2>
           </div>
 
+          {/* Хүүхэд сонгох */}
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">
               Хүүхэд сонгох:
@@ -98,6 +102,7 @@ export default function InterviewsPage() {
             </select>
           </div>
 
+          {/* Ярилцлагын төрөл */}
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">
               Ярилцлагын төрөл:
@@ -113,6 +118,21 @@ export default function InterviewsPage() {
             </select>
           </div>
 
+          {/* Огноо сонгох (Шинээр нэмэгдсэн) */}
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              Огноо сонгох:
+            </label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500 bg-white text-gray-700"
+              required
+            />
+          </div>
+
+          {/* Ярилцлагын агуулга */}
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">
               Ярилцлагын агуулга:
@@ -127,6 +147,7 @@ export default function InterviewsPage() {
             ></textarea>
           </div>
 
+          {/* Зураг / Бичлэг оруулах */}
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">
               Зураг эсвэл Бичлэг оруулна уу:
@@ -196,7 +217,9 @@ export default function InterviewsPage() {
               >
                 <div className="flex justify-between items-center text-xs">
                   <span className="font-bold text-pink-600">{item.childName}</span>
-                  <span className="text-gray-400">{item.date}</span>
+                  <span className="text-gray-400 flex items-center gap-1">
+                    <Calendar size={12} /> {item.date}
+                  </span>
                 </div>
                 <span className="inline-block bg-pink-50 text-pink-600 text-[10px] px-2 py-0.5 rounded-full font-medium">
                   {item.type}
