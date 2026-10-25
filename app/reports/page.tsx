@@ -178,4 +178,50 @@ export default function ReportsPage() {
                       <Sparkles size={14} /> АИ Ажиглалтын Дүгнэлт:
                     </p>
                     <p className="text-xs text-gray-700 mt-1 leading-relaxed">
-                      Хүүхэд нийгэмшихүй бо
+                      Хүүхэд нийгэмшихүй болон анхаарал төвлөрлийн чадвартай. Тоглоомын орчинд бусадтайгаа эелдэг харилцдаг.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. ЯРИЛЦЛАГЫГ АИ АШИГЛАН НЭГТГЭЖ ДҮГНЭХ */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm font-bold text-gray-800">
+                  <MessageSquare className="text-pink-500" size={18} />
+                  <span>2. Ярилцлагын тэмдэглэл & АИ Дүгнэлт</span>
+                </div>
+                <div className="bg-gray-50/80 p-4 rounded-xl border border-gray-100 space-y-3">
+                  <div className="text-xs text-gray-600 space-y-1">
+                    <p>• <span className="font-semibold text-gray-500">Эцэг эх:</span> Гэрийн орчинд ном уншиж өгдөг.</p>
+                    <p>• <span className="font-semibold text-gray-500">Хүүхэд:</span> Зураг зурах дуртайгаа хэлсэн.</p>
+                  </div>
+                  <div className="pt-2 border-t border-gray-200/60 bg-white p-3 rounded-lg border border-pink-100">
+                    <p className="text-xs font-bold text-pink-600 flex items-center gap-1">
+                      <Sparkles size={14} /> АИ Ярилцлагын Дүгнэлт:
+                    </p>
+                    <p className="text-xs text-gray-700 mt-1 leading-relaxed">
+                      Эцэг эхийн дэмжлэг сайн, хүүхэд өөрийн сонирхлоо чөлөөтэй илэрхийлэх чадвартай байна.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. АЖИГЛАЛТ БА ЯРИЛЦЛАГЫГ НЭГТГЭСЭН АИ ЭЦСИЙН ДҮГНЭЛТ */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm font-bold text-gray-900">
+                  <CheckCircle2 className="text-emerald-500" size={18} />
+                  <span>3. Ажиглалт + Ярилцлагын АИ Нэгдсэн Эцсийн Дүгнэлт</span>
+                </div>
+                <div className="bg-emerald-50/40 p-4 rounded-xl border border-emerald-100 space-y-2">
+                  <p className="text-xs text-emerald-900 font-medium leading-relaxed">
+                    Ажиглалт болон ярилцлагын дүн шинжилгээнээс үзэхэд <span className="font-bold">{selectedTarget}</span> нь бүтээлч сэтгэлгээ болон харилцааны өндөр чадамжтай байна. Гэр болон цэцэрлэгийн орчны хамтын ажиллагаа сайн хангагдсан тул цаашид бие даах байдлыг илүү дэмжих боломжтой.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
