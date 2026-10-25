@@ -1,176 +1,110 @@
 "use client";
 
-import React, { useState } from "react";
-import { Plus, Calendar, User, Image as ImageIcon, Video, Trash2 } from "lucide-react";
-
-interface ObservationItem {
-  id: string;
-  childName: string;
-  date: string;
-  category: string;
-  note: string;
-  mediaUrl?: string;
-  mediaType?: "image" | "video";
-}
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Users, TrendingUp, Eye, MessageSquare, FileBarChart, Image, Video, Upload } from "lucide-react";
 
 export default function ObservationsPage() {
-  // Бэлтгэл Б бүлгийн хүүхдүүдийн жагсаалт
-  const childrenList = ["А. Болд", "Б. Болор", "Д. Бат", "Э. Наран", "Ц. Цэцэг"];
-
-  const [observations, setObservations] = useState<ObservationItem[]>([
-    {
-      id: "1",
-      childName: "А. Болд",
-      date: "2026-10-20",
-      category: "Нийгэмшихүй",
-      note: "Бусадтай тоглоомоо хуваалцаж, хамтран тоглох чадвар ажиглагдсан.",
-    },
-  ]);
-
-  const [selectedChild, setSelectedChild] = useState(childrenList[0]);
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [category, setCategory] = useState("Нийгэмшихүй");
+  const [selectedChild, setSelectedChild] = useState("А. Болд");
   const [note, setNote] = useState("");
-  const [mediaFile, setMediaFile] = useState<File | null>(null);
-  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
-  const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
+  const [files, setFiles] = useState<FileList | null>(null);
 
-  // Зураг / Бичлэг файл сонгох үед preview үүсгэх
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setMediaFile(file);
-      const url = URL.createObjectURL(file);
-      setMediaPreview(url);
-      if (file.type.startsWith("video/")) {
-        setMediaType("video");
-      } else {
-        setMediaType("image");
-      }
-    }
-  };
-
-  const handleRemoveMedia = () => {
-    setMediaFile(null);
-    setMediaPreview(null);
-    setMediaType(null);
-  };
-
-  const handleAdd = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedChild || !note) return;
-
-    const newObs: ObservationItem = {
-      id: Date.now().toString(),
-      childName: selectedChild,
-      date,
-      category,
-      note,
-      mediaUrl: mediaPreview || undefined,
-      mediaType: mediaType || undefined,
-    };
-
-    setObservations([newObs, ...observations]);
+    alert(`${selectedChild} хүүхдийн ажиглалт болон медиа файл амжилттай хадгалагдлаа!`);
     setNote("");
-    setMediaFile(null);
-    setMediaPreview(null);
-    setMediaType(null);
+    setFiles(null);
   };
 
   return (
-    <div className="space-y-6 max-w-5xl">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          Ажиглалтын Тэмдэглэл 👁️
-        </h1>
-        <p className="text-gray-400 text-sm mt-1">
-          Хүүхдийг сонгож огноо, ажиглалт, зураг болон бичлэгтэйгээр тэмдэглэх хэсэг
-        </p>
-      </div>
+    <div className="flex h-screen bg-slate-50">
+      <aside className="w-64 bg-white border-r p-6 space-y-6">
+        <h1 className="text-xl font-bold text-pink-600">🌸 Хөгжлийн Хуудас</h1>
+        <nav className="space-y-2 font-medium">
+          <Link href="/" className="flex items-center gap-3 p-3 text-slate-600 hover:bg-slate-100 rounded-lg">
+            <TrendingUp size={20} /> Нүүр
+          </Link>
+          <Link href="/children" className="flex items-center gap-3 p-3 text-slate-600 hover:bg-slate-100 rounded-lg">
+            <Users size={20} /> Хүүхдүүд
+          </Link>
+          <Link href="/observations" className="flex items-center gap-3 p-3 bg-pink-50 text-pink-600 rounded-lg">
+            <Eye size={20} /> Ажиглалт
+          </Link>
+          <Link href="/interviews" className="flex items-center gap-3 p-3 text-slate-600 hover:bg-slate-100 rounded-lg">
+            <MessageSquare size={20} /> Ярилцлага
+          </Link>
+          <Link href="/reports" className="flex items-center gap-3 p-3 text-slate-600 hover:bg-slate-100 rounded-lg">
+            <FileBarChart size={20} /> Тайлан & Хэвлэх
+          </Link>
+        </nav>
+      </aside>
 
-      {/* Шинэ ажиглалт нэмэх форм */}
-      <form
-        onSubmit={handleAdd}
-        className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4"
-      >
-        <h2 className="text-base font-bold text-gray-800">
-          + Шинэ ажиглалт бичих
-        </h2>
+      <main className="flex-1 p-8 space-y-6 overflow-y-auto">
+        <h2 className="text-2xl font-bold">Ажиглалт бичих 👁️</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Хүүхэд сонгох (Select) */}
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">
-              Хүүхэд сонгох
-            </label>
-            <select
-              value={selectedChild}
-              onChange={(e) => setSelectedChild(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500 bg-white font-medium text-gray-800"
-            >
-              {childrenList.map((child) => (
-                <option key={child} value={child}>
-                  {child}
-                </option>
-              ))}
-            </select>
-          </div>
+        <Card className="max-w-2xl">
+          <CardHeader>
+            <CardTitle>Хүүхдийн ажиглалтын тэмдэглэл ба Медиа оруулах</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Хүүхэд сонгох:</label>
+                <select 
+                  value={selectedChild} 
+                  onChange={(e) => setSelectedChild(e.target.value)}
+                  className="w-full p-2 border rounded-lg bg-white"
+                >
+                  <option value="А. Болд">А. Болд (Бэлтгэл Б)</option>
+                  <option value="Б. Болор">Б. Болор (Бэлтгэл Б)</option>
+                </select>
+              </div>
 
-          {/* Огноо сонгох */}
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">
-              Ажиглалт хийсэн огноо
-            </label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500 bg-white"
-              required
-            />
-          </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Ажиглалтын тэмдэглэл:</label>
+                <textarea 
+                  rows={4}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Хүүхдийн хийж буй үйлдэл, завшил, зан төлөвийн талаар бичнэ үү..."
+                  className="w-full p-2 border rounded-lg"
+                  required
+                />
+              </div>
 
-          {/* Хөгжлийн чиглэл */}
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">
-              Хөгжлийн чиглэл
-            </label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500 bg-white"
-            >
-              <option>Нийгэмшихүй</option>
-              <option>Танин мэдэхүй</option>
-              <option>Илэрхийлэх урлаг</option>
-              <option>Хөдөлгөөн, эрүүл мэнд</option>
-              <option>Хэл яриа</option>
-            </select>
-          </div>
-        </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Зураг эсвэл Бичлэг оруулах:</label>
+                <div className="border-2 border-dashed border-slate-300 p-6 rounded-lg text-center bg-slate-50 hover:bg-slate-100 cursor-pointer relative">
+                  <input 
+                    type="file" 
+                    multiple 
+                    accept="image/*,video/*" 
+                    onChange={(e) => setFiles(e.target.files)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div className="flex justify-center gap-2 text-slate-500 mb-2">
+                    <Image size={24} />
+                    <Video size={24} />
+                  </div>
+                  <p className="text-sm text-slate-600 font-medium">Зураг болон бичлэгээ энд чирч оруулна уу эсвэл дарж сонгоно уу</p>
+                  <p className="text-xs text-slate-400 mt-1">PNG, JPG, MP4, MOV файлууд дэмжигдэнэ</p>
+                </div>
+                {files && files.length > 0 && (
+                  <div className="mt-2 text-xs text-slate-600 font-medium">
+                    Сонгосон файл: {files.length} файл
+                  </div>
+                )}
+              </div>
 
-        {/* Тэмдэглэл бичих талбар */}
-        <div>
-          <label className="block text-xs text-gray-500 mb-1">
-            Ажиглалтын тэмдэглэл
-          </label>
-          <textarea
-            rows={3}
-            placeholder="Ажиглагдсан ахиц, онцлогийг бичнэ үү..."
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500"
-            required
-          ></textarea>
-        </div>
-
-        {/* Зураг / Бичлэг оруулах хэсэг */}
-        <div>
-          <label className="block text-xs text-gray-500 mb-1">
-            Зураг эсвэл Бичлэг оруулах
-          </label>
-          <div className="flex items-center gap-4">
-            <label className="cursor-pointer bg-gray-50 hover:bg-pink-50 text-gray-600 hover:text-pink-600 border border-dashed border-gray-300 hover:border-pink-300 px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 transition">
-              <ImageIcon size={18} />
-              <Video size={18} />
-              <span>Зураг/Бичлэг сонгох</span>
+              <Button type="submit" className="bg-pink-500 hover:bg-pink-600 text-white w-full gap-2">
+                <Upload size={18} /> Ажиглалт хадгалах
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </main>
+    </div>
+  );
+}

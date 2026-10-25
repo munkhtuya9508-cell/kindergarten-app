@@ -1,140 +1,123 @@
 "use client";
 
-import React, { useState } from "react";
-import { Plus, MessageSquare, Calendar, UserCheck } from "lucide-react";
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Users, TrendingUp, Eye, MessageSquare, FileBarChart, Send, Image, Video } from "lucide-react";
 
 export default function InterviewsPage() {
-  const [interviews, setInterviews] = useState([
-    {
-      id: "1",
-      childName: "А. Болд",
-      person: "Эцэг эх (Ээж)",
-      date: "2026-10-15",
-      summary: "Гэрийн орчинд ном унших сонирхлыг дэмжих талаар зөвлөлдөв.",
-    },
-    {
-      id: "2",
-      childName: "Б. Болор",
-      person: "Хүүхэд өөрөө",
-      date: "2026-10-18",
-      summary: "Дуртай хичээл болон найзуудынхаа талаар ярилцлага хийсэн.",
-    },
-  ]);
+  const [selectedChild, setSelectedChild] = useState("А. Болд");
+  const [target, setTarget] = useState("Хүүхэдтэй хийсэн ярилцлага");
+  const [note, setNote] = useState("");
+  const [files, setFiles] = useState<FileList | null>(null);
 
-  const [childName, setChildName] = useState("");
-  const [person, setPerson] = useState("Эцэг эх");
-  const [summary, setSummary] = useState("");
-
-  const handleAdd = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!childName || !summary) return;
-
-    const newInterview = {
-      id: Date.now().toString(),
-      childName,
-      person,
-      date: new Date().toISOString().split("T")[0],
-      summary,
-    };
-
-    setInterviews([newInterview, ...interviews]);
-    setChildName("");
-    setSummary("");
+    alert(`${selectedChild} - ${target} ярилцлага болон медиа файл амжилттай хадгалагдлаа!`);
+    setNote("");
+    setFiles(null);
   };
 
   return (
-    <div className="space-y-6 max-w-5xl">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          Ярилцлагын Тэмдэглэл 💬
-        </h1>
-        <p className="text-gray-400 text-sm mt-1">
-          Эцэг эх болон хүүхэдтэй хийсэн ганцаарчилсан ярилцлагын тэмдэглэл
-        </p>
-      </div>
+    <div className="flex h-screen bg-slate-50">
+      <aside className="w-64 bg-white border-r p-6 space-y-6">
+        <h1 className="text-xl font-bold text-pink-600">🌸 Хөгжлийн Хуудас</h1>
+        <nav className="space-y-2 font-medium">
+          <Link href="/" className="flex items-center gap-3 p-3 text-slate-600 hover:bg-slate-100 rounded-lg">
+            <TrendingUp size={20} /> Нүүр
+          </Link>
+          <Link href="/children" className="flex items-center gap-3 p-3 text-slate-600 hover:bg-slate-100 rounded-lg">
+            <Users size={20} /> Хүүхдүүд
+          </Link>
+          <Link href="/observations" className="flex items-center gap-3 p-3 text-slate-600 hover:bg-slate-100 rounded-lg">
+            <Eye size={20} /> Ажиглалт
+          </Link>
+          <Link href="/interviews" className="flex items-center gap-3 p-3 bg-pink-50 text-pink-600 rounded-lg">
+            <MessageSquare size={20} /> Ярилцлага
+          </Link>
+          <Link href="/reports" className="flex items-center gap-3 p-3 text-slate-600 hover:bg-slate-100 rounded-lg">
+            <FileBarChart size={20} /> Тайлан & Хэвлэх
+          </Link>
+        </nav>
+      </aside>
 
-      {/* Шинэ ярилцлага нэмэх форм */}
-      <form
-        onSubmit={handleAdd}
-        className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4"
-      >
-        <h2 className="text-base font-bold text-gray-800">
-          + Ярилцлагын тэмдэглэл нэмэх
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">
-              Хүүхдийн нэр
-            </label>
-            <input
-              type="text"
-              placeholder="жишээ нь: А. Болд"
-              value={childName}
-              onChange={(e) => setChildName(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">
-              Ярилцсан хүн
-            </label>
-            <select
-              value={person}
-              onChange={(e) => setPerson(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500 bg-white"
-            >
-              <option>Эцэг эх (Ээж)</option>
-              <option>Эцэг эх (Аав)</option>
-              <option>Хүүхэд өөрөө</option>
-              <option>Бусад асран хамгаалагч</option>
-            </select>
-          </div>
-        </div>
-        <div>
-          <label className="block text-xs text-gray-500 mb-1">
-            Ярилцлагын товч утга
-          </label>
-          <textarea
-            rows={3}
-            placeholder="Ярилцлагын агуулга болон шийдвэрлэсэн зүйлсийг бичнэ үү..."
-            value={summary}
-            onChange={(e) => setSummary(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500"
-          ></textarea>
-        </div>
-        <button
-          type="submit"
-          className="bg-pink-500 hover:bg-pink-600 text-white font-medium px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 transition"
-        >
-          <Plus size={18} /> Тэмдэглэл хадгалах
-        </button>
-      </form>
+      <main className="flex-1 p-8 space-y-6 overflow-y-auto">
+        <h2 className="text-2xl font-bold">Ярилцлага тэмдэглэх 💬</h2>
 
-      {/* Жагсаалт */}
-      <div className="space-y-3">
-        <h2 className="text-base font-bold text-gray-800">Бүртгэгдсэн ярилцлагууд</h2>
-        {interviews.map((item) => (
-          <div
-            key={item.id}
-            className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row justify-between md:items-center gap-3"
-          >
-            <div className="space-y-1">
-              <div className="flex items-center gap-3">
-                <span className="font-semibold text-pink-600 flex items-center gap-1.5">
-                  <UserCheck size={16} /> {item.childName}
-                </span>
-                <span className="bg-pink-50 text-pink-600 text-xs px-2.5 py-0.5 rounded-full font-medium">
-                  {item.person}
-                </span>
+        <Card className="max-w-2xl">
+          <CardHeader>
+            <CardTitle>Ярилцлагын бүртгэл болон Медиа оруулах</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Хүүхэд сонгох:</label>
+                <select 
+                  value={selectedChild} 
+                  onChange={(e) => setSelectedChild(e.target.value)}
+                  className="w-full p-2 border rounded-lg bg-white"
+                >
+                  <option value="А. Болд">А. Болд (Бэлтгэл Б)</option>
+                  <option value="Б. Болор">Б. Болор (Бэлтгэл Б)</option>
+                </select>
               </div>
-              <p className="text-gray-600 text-sm">{item.summary}</p>
-            </div>
-            <div className="text-xs text-gray-400 flex items-center gap-1 shrink-0">
-              <Calendar size={14} /> {item.date}
-            </div>
-          </div>
-        ))}
-      </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Ярилцлагын төрөл:</label>
+                <select 
+                  value={target} 
+                  onChange={(e) => setTarget(e.target.value)}
+                  className="w-full p-2 border rounded-lg bg-white"
+                >
+                  <option value="Хүүхэдтэй хийсэн ярилцлага">Хүүхэдтэй хийсэн ярилцлага</option>
+                  <option value="Эцэг эхтэй хийсэн ярилцлага">Эцэг эхтэй хийсэн ярилцлага</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Ярилцлагын агуулга:</label>
+                <textarea 
+                  rows={4}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Ярилцсан асуулт, хариулт болон онцлох тэмдэглэлийг бичнэ үү..."
+                  className="w-full p-2 border rounded-lg"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Зураг эсвэл Бичлэг оруулах:</label>
+                <div className="border-2 border-dashed border-slate-300 p-6 rounded-lg text-center bg-slate-50 hover:bg-slate-100 cursor-pointer relative">
+                  <input 
+                    type="file" 
+                    multiple 
+                    accept="image/*,video/*" 
+                    onChange={(e) => setFiles(e.target.files)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div className="flex justify-center gap-2 text-slate-500 mb-2">
+                    <Image size={24} />
+                    <Video size={24} />
+                  </div>
+                  <p className="text-sm text-slate-600 font-medium">Ярилцлагын баримтжуулах зураг болон бичлэг энд чирч оруулна уу</p>
+                  <p className="text-xs text-slate-400 mt-1">PNG, JPG, MP4, MOV файлууд дэмжигдэнэ</p>
+                </div>
+                {files && files.length > 0 && (
+                  <div className="mt-2 text-xs text-slate-600 font-medium">
+                    Сонгосон файл: {files.length} файл
+                  </div>
+                )}
+              </div>
+
+              <Button type="submit" className="bg-pink-500 hover:bg-pink-600 text-white w-full gap-2">
+                <Send size={18} /> Ярилцлага хадгалах
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </main>
     </div>
   );
 }
