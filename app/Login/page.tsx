@@ -11,15 +11,16 @@ export default function LoginPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Багшийн мэдээллийг хөтөчид хадгалж, систем рүү нэвтрүүлнэ
     if (email && password) {
+      // Багшийн сессийг хадгалаад Нүүр хуудас руу шилжүүлнэ
       localStorage.setItem("teacher_session", JSON.stringify({ email }));
       router.push("/");
+      window.location.href = "/"; // Баталгаажуулж хуудсыг сэргээнэ
     }
   };
 
   return (
-    <div className="min-h-screen bg-pink-50/30 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-pink-50/30 flex items-center justify-center p-4 w-full">
       <div className="bg-white w-full max-w-md rounded-3xl p-8 border border-pink-100 shadow-xl space-y-6">
         <div className="text-center space-y-2">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-pink-100 text-pink-600 mb-2">
@@ -73,10 +74,6 @@ export default function LoginPage() {
             <UserCheck size={18} /> Системд нэвтрэх
           </button>
         </form>
-
-        <p className="text-[11px] text-center text-gray-400">
-          Нэвтрэх эрхгүй бол сургалтын менежертэй холбогдож багшийн аккаунт нээлгэнэ үү.
-        </p>
       </div>
     </div>
   );
