@@ -12,10 +12,9 @@ export default function LoginPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (email && password) {
-      // Багшийн сессийг хадгалаад Нүүр хуудас руу шилжүүлнэ
       localStorage.setItem("teacher_session", JSON.stringify({ email }));
       router.push("/");
-      window.location.href = "/"; // Баталгаажуулж хуудсыг сэргээнэ
+      window.location.href = "/";
     }
   };
 
