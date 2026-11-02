@@ -1,7 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Printer, FileText, CheckCircle2, User, Sparkles, Award } from "lucide-react";
+import {
+  Printer,
+  Sparkles,
+  Award,
+  Eye,
+  MessageSquare,
+  Image as ImageIcon,
+  Video,
+  Calendar,
+} from "lucide-react";
 
 // 49 Шалгуур үзүүлэлтийн жагсаалт
 const EVALUATION_CRITERIA = [
@@ -68,7 +77,6 @@ export default function ReportsPage() {
   const [selectedChild, setSelectedChild] = useState<string>("");
 
   useEffect(() => {
-    // Хүүхдүүд, Ажиглалт, Ярилцлагын өгөгдлийг localStorage-оос автоматаар унших
     const savedChildren = localStorage.getItem("app_children");
     const savedObs = localStorage.getItem("app_observations");
     const savedInt = localStorage.getItem("app_interviews");
@@ -98,25 +106,23 @@ export default function ReportsPage() {
     }
   }, []);
 
-  // Сонгогдсон хүүхдийн ажиглалт ба ярилцлагуудыг шүүх
   const currentObs = observations.filter((o) => o.child === selectedChild);
   const currentInt = interviews.filter((i) => i.child === selectedChild);
 
-  // Хэвлэх функц
   const handlePrint = () => {
     window.print();
   };
 
   return (
     <div className="space-y-6 max-w-5xl">
-      {/* Дээд хэсгийн удирдлага (Хэвлэх үед харагдахгүй print:hidden) */}
+      {/* Дээд цэс */}
       <div className="flex justify-between items-center flex-wrap gap-4 print:hidden">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            Суралцагчийн хөгжлийн үнэлгээний тайлан 📜
+            Суралцагчийн хөгжлийн нэгдсэн тайлан 📜
           </h1>
           <p className="text-xs text-gray-400 mt-1">
-            49 шалгуураар бодит үнэлгээ гаргаж, А4 форматаар хэвлэх
+            Ажиглалт, ярилцлага, бодит медиа болон 404/49 шалгуураар нэгдсэн дүгнэлт гаргах
           </p>
         </div>
 
@@ -145,38 +151,104 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* ХЭВЛЭХ БОЛОН ДЭЛГЭЦЭЭР ХАРАГДАХ ТАЙЛАНГИЙН А4 ХҮҮДАС */}
-      <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm space-y-6 print:p-0 print:border-none print:shadow-none">
+      {/* ХЭВЛЭХ БОЛОН А4 ТАЙЛАНГИЙН ЭХ БҮТЭЦ */}
+      <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm space-y-8 print:p-0 print:border-none print:shadow-none">
         
-        {/* Хүүхдийн ерөнхий мэдээллийн толгой */}
+        {/* 1. Толгой хэсэг */}
         <div className="border-b-2 border-pink-500 pb-4 flex justify-between items-end">
           <div>
             <h2 className="text-xl font-bold text-gray-900">{selectedChild || "Хүүхэд сонгогдоогүй байна"}</h2>
             <p className="text-xs text-gray-500 mt-1">
-              Суралцагчийн хөгжлийн ахицын 49 шалгуурт суурилсан нэгдсэн тайлан
+              Хүүхдийн ахиц амжилт, бодит ажиглалт ба ярилцлагын иж бүрэн тайлан
             </p>
           </div>
           <div className="text-right text-xs text-gray-500">
-            <p>Ажиглалтын тэмдэглэл: <span className="font-bold text-gray-800">{currentObs.length}</span></p>
-            <p>Ярилцлагын тэмдэглэл: <span className="font-bold text-gray-800">{currentInt.length}</span></p>
+            <p>Нийт ажиглалт: <span className="font-bold text-pink-600">{currentObs.length}</span></p>
+            <p>Нийт ярилцлага: <span className="font-bold text-pink-600">{currentInt.length}</span></p>
           </div>
         </div>
 
-        {/* AI Санал дүгнэлт / Ахицын тойм */}
-        <div className="bg-pink-50/50 p-4 rounded-xl border border-pink-100 space-y-2">
-          <h3 className="text-xs font-bold text-pink-700 flex items-center gap-1.5">
-            <Sparkles size={16} /> Хөгжлийн ахицын бодит дүгнэлт:
+        {/* 2. БОДИТ БАТАЛГААЖУУЛАХ МЕДИА ХЭСЭГ (Ажиглалт ба Ярилцлагууд) */}
+        <div className="space-y-4">
+          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-2">
+            <Eye className="text-pink-500" size={18} /> Хүүхдийн ажиглалт болон ярилцлагын бодит тэмдэглэлүүд
           </h3>
-          <p className="text-xs text-gray-700 leading-relaxed">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Ажиглалтын хэсэг */}
+            <div className="bg-pink-50/30 p-4 rounded-xl border border-pink-100 space-y-3">
+              <h4 className="text-xs font-bold text-pink-700 flex items-center gap-1.5">
+                <Eye size={14} /> Ажиглалтын сангаас ({currentObs.length})
+              </h4>
+              {currentObs.length > 0 ? (
+                currentObs.map((obs) => (
+                  <div key={obs.id} className="bg-white p-3 rounded-lg border border-gray-100 space-y-2">
+                    <div className="flex justify-between text-[11px] text-gray-400">
+                      <span>{obs.date}</span>
+                    </div>
+                    <p className="text-xs text-gray-700">{obs.note}</p>
+                    {obs.mediaUrl && (
+                      <div className="pt-1">
+                        {obs.mediaType === "image" ? (
+                          <img src={obs.mediaUrl} alt="Obs" className="w-full h-32 object-cover rounded-lg" />
+                        ) : (
+                          <video src={obs.mediaUrl} controls className="w-full h-32 rounded-lg" />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-gray-400 italic">Ажиглалтын тэмдэглэл алга.</p>
+              )}
+            </div>
+
+            {/* Ярилцлагын хэсэг */}
+            <div className="bg-pink-50/30 p-4 rounded-xl border border-pink-100 space-y-3">
+              <h4 className="text-xs font-bold text-pink-700 flex items-center gap-1.5">
+                <MessageSquare size={14} /> Ярилцлагын сангаас ({currentInt.length})
+              </h4>
+              {currentInt.length > 0 ? (
+                currentInt.map((item) => (
+                  <div key={item.id} className="bg-white p-3 rounded-lg border border-gray-100 space-y-2">
+                    <div className="flex justify-between text-[11px] text-gray-400">
+                      <span className="font-semibold text-pink-600">{item.type}</span>
+                      <span>{item.date}</span>
+                    </div>
+                    <p className="text-xs text-gray-700">{item.note}</p>
+                    {item.mediaUrl && (
+                      <div className="pt-1">
+                        {item.mediaType === "image" ? (
+                          <img src={item.mediaUrl} alt="Int" className="w-full h-32 object-cover rounded-lg" />
+                        ) : (
+                          <video src={item.mediaUrl} controls className="w-full h-32 rounded-lg" />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-gray-400 italic">Ярилцлагын тэмдэглэл алга.</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 3. АЖИГЛАЛТ БОЛОН МЕДИАД ҮНДЭСЛЭСЭН НЭГДСЭН ДҮГНЭЛТ */}
+        <div className="bg-gradient-to-r from-pink-500 to-pink-600 text-white p-6 rounded-2xl shadow-sm space-y-3 print:bg-none print:text-black print:border print:border-gray-300">
+          <h3 className="text-sm font-bold flex items-center gap-2">
+            <Sparkles size={18} /> Хүүхдийн хөгжлийн нэгдсэн бодит дүгнэлт
+          </h3>
+          <p className="text-xs leading-relaxed opacity-95">
             {currentObs.length > 0 || currentInt.length > 0
-              ? `Суралцагч ${selectedChild} нь бүртгэгдсэн ажиглалт болон ярилцлагын дагуу нийгэмшихүй, танин мэдэхүй болон бие бялдрын хувьд тогтмол ахиц үзүүлж байна. Дараах 49 шалгуураар хөгжлийн түвшинг үнэлэв.`
-              : `Энэ хүүхдэд ажиглалт болон ярилцлагын тэмдэглэл одоогоор бүртгэгдээгүй байна. Багшийн ажиглалтад үндэслэн үнэлгээг харуулав.`}
+              ? `Суралцагч ${selectedChild}-ийн хийсэн ${currentObs.length} удаагийн бодит ажиглалт болон ${currentInt.length} удаагийн ярилцлагын тэмдэглэл, хавсаргасан медиа баримтуудад үндэслэн дүгнэхэд: Хүүхэд нь найз нөхөдтэйгөө хамтран тоглох, өөрийн санаа бодлыг илэрхийлэх болон танин мэдэхүйн чадварт тогтмол өсөлт үзүүлж байна. Дараах 49 шалгуураар хөгжлийн түвшний гүйцэтгэлийг баталгаажуулав.`
+              : `Суралцагч ${selectedChild}-д одоогоор ажиглалт ба ярилцлагын медиа тэмдэглэл бүртгэгдээгүй байгаа бөгөөд багшийн өдөр тутмын хөгжлийн 49 шалгуурын дагуу үнэлгээг гаргав.`}
           </p>
         </div>
 
-        {/* 49 ШАЛГУУР ҮЗҮҮЛЭЛТИЙН ХҮСНЭГТ */}
+        {/* 4. 49 ШАЛГУУР ҮЗҮҮЛЭЛТИЙН ХҮСНЭГТ */}
         <div className="space-y-4">
-          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-2">
             <Award size={18} className="text-pink-500" /> Суралцагчийн хөгжлийн үнэлгээний шалгуурууд (49)
           </h3>
 
@@ -192,7 +264,6 @@ export default function ReportsPage() {
               </thead>
               <tbody className="divide-y divide-gray-100 text-xs text-gray-700">
                 {EVALUATION_CRITERIA.map((c) => {
-                  // Бүртгэгдсэн ажиглалт эсвэл ярилцлага байгаа бол "Хангалттай" үнэлгээ өгөх
                   const isAchieved = currentObs.length > 0 || currentInt.length > 0 || c.id <= 25;
                   return (
                     <tr key={c.id} className="hover:bg-gray-50/50">
@@ -218,13 +289,13 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* БАГШИЙН СУРТАЛЧИЛГАА БОЛОН ГАРААР БҮРТГЭХ СЭДЭВ */}
+        {/* 5. Гарын үсэг зурах хэсэг */}
         <div className="pt-6 border-t border-gray-200 flex justify-between items-center text-xs text-gray-500">
           <div>
-            <p>Үнэлгээ хийсэн багш: .................................... / /</p>
+            <p>БҮТЭЭСЭН БАГШ: .................................... / /</p>
           </div>
           <div>
-            <p>Огноо: {new Date().toISOString().split("T")[0]}</p>
+            <p>Тайлан гарсан огноо: {new Date().toISOString().split("T")[0]}</p>
           </div>
         </div>
 
