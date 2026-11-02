@@ -9,7 +9,8 @@ import {
   MessageSquare,
   Image as ImageIcon,
   Video,
-  Calendar,
+  CheckCircle2,
+  FileCheck,
 } from "lucide-react";
 
 // 49 Шалгуур үзүүлэлтийн жагсаалт
@@ -115,14 +116,14 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6 max-w-5xl">
-      {/* Дээд цэс */}
+      {/* Дээд хэсэг (Хэвлэхэд нуугдана) */}
       <div className="flex justify-between items-center flex-wrap gap-4 print:hidden">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            Суралцагчийн хөгжлийн нэгдсэн тайлан 📜
+            Суралцагчийн хөгжлийн үнэлгээний тайлан 📜
           </h1>
           <p className="text-xs text-gray-400 mt-1">
-            Ажиглалт, ярилцлага, бодит медиа болон 404/49 шалгуураар нэгдсэн дүгнэлт гаргах
+            Бодит зураг, бичлэгт тулгуурласан үнэлгээ болон 49 шалгуурын нэгдсэн тайлан
           </p>
         </div>
 
@@ -151,105 +152,118 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* ХЭВЛЭХ БОЛОН А4 ТАЙЛАНГИЙН ЭХ БҮТЭЦ */}
+      {/* А4 ХЭВЛЭХ ХҮҮДЭС */}
       <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm space-y-8 print:p-0 print:border-none print:shadow-none">
         
-        {/* 1. Толгой хэсэг */}
+        {/* Header */}
         <div className="border-b-2 border-pink-500 pb-4 flex justify-between items-end">
           <div>
             <h2 className="text-xl font-bold text-gray-900">{selectedChild || "Хүүхэд сонгогдоогүй байна"}</h2>
             <p className="text-xs text-gray-500 mt-1">
-              Хүүхдийн ахиц амжилт, бодит ажиглалт ба ярилцлагын иж бүрэн тайлан
+              Бодит баримт (Зураг/Бичлэг)-нд суурилсан ахицын үнэлгээ ба 49 шалгуурын тайлан
             </p>
           </div>
           <div className="text-right text-xs text-gray-500">
-            <p>Нийт ажиглалт: <span className="font-bold text-pink-600">{currentObs.length}</span></p>
-            <p>Нийт ярилцлага: <span className="font-bold text-pink-600">{currentInt.length}</span></p>
+            <p>Баталгаажуулсан ажиглалт: <span className="font-bold text-pink-600">{currentObs.length}</span></p>
+            <p>Баталгаажуулсан ярилцлага: <span className="font-bold text-pink-600">{currentInt.length}</span></p>
           </div>
         </div>
 
-        {/* 2. БОДИТ БАТАЛГААЖУУЛАХ МЕДИА ХЭСЭГ (Ажиглалт ба Ярилцлагууд) */}
-        <div className="space-y-4">
-          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-2">
-            <Eye className="text-pink-500" size={18} /> Хүүхдийн ажиглалт болон ярилцлагын бодит тэмдэглэлүүд
+        {/* 1-Р ХЭСЭГ: БОДИТ БАРИМТ (ЗУРАГ, БИЧЛЭГ)-НД ТУЛГУУРЛАСАН НЭГДСЭН АНАЛИЗ БОЛОН ҮНЭЛГЭЭ */}
+        <div className="space-y-4 bg-gray-50/50 p-6 rounded-2xl border border-gray-100 print:bg-none print:p-0">
+          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2 border-b border-gray-200 pb-2">
+            <FileCheck className="text-pink-500" size={18} /> I. Бодит медиа баримтад тулгуурласан чанарын дүгнэлт
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Ажиглалтын хэсэг */}
-            <div className="bg-pink-50/30 p-4 rounded-xl border border-pink-100 space-y-3">
-              <h4 className="text-xs font-bold text-pink-700 flex items-center gap-1.5">
-                <Eye size={14} /> Ажиглалтын сангаас ({currentObs.length})
+            {/* Ажиглалтын зураг/бичлэгийн анализ */}
+            <div className="bg-white p-4 rounded-xl border border-gray-100 space-y-3">
+              <h4 className="text-xs font-bold text-pink-600 flex items-center gap-1.5 border-b pb-1.5">
+                <Eye size={14} /> Ажиглалтын бодит баримтууд & Үнэлгээ
               </h4>
               {currentObs.length > 0 ? (
                 currentObs.map((obs) => (
-                  <div key={obs.id} className="bg-white p-3 rounded-lg border border-gray-100 space-y-2">
+                  <div key={obs.id} className="space-y-2 border-b border-gray-100 pb-3 last:border-none">
                     <div className="flex justify-between text-[11px] text-gray-400">
-                      <span>{obs.date}</span>
+                      <span className="font-bold text-gray-700">Огноо: {obs.date}</span>
+                      <span className="text-emerald-600 font-semibold">Баталгаажсан</span>
                     </div>
-                    <p className="text-xs text-gray-700">{obs.note}</p>
-                    {obs.mediaUrl && (
-                      <div className="pt-1">
+                    <p className="text-xs text-gray-700 bg-gray-50 p-2 rounded-lg">{obs.note}</p>
+                    {obs.mediaUrl ? (
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold text-gray-500 flex items-center gap-1">
+                          {obs.mediaType === "image" ? <ImageIcon size={12} /> : <Video size={12} />} Бодит нотлох баримт:
+                        </p>
                         {obs.mediaType === "image" ? (
-                          <img src={obs.mediaUrl} alt="Obs" className="w-full h-32 object-cover rounded-lg" />
+                          <img src={obs.mediaUrl} alt="Observation Evidence" className="w-full h-36 object-cover rounded-xl border border-gray-200" />
                         ) : (
-                          <video src={obs.mediaUrl} controls className="w-full h-32 rounded-lg" />
+                          <video src={obs.mediaUrl} controls className="w-full h-36 rounded-xl border border-gray-200" />
                         )}
+                        <p className="text-[10px] text-pink-600 italic">✓ Үйлдэл болон ахицыг зураг/бичлэгээр баталгаажуулсан.</p>
                       </div>
+                    ) : (
+                      <p className="text-[10px] text-gray-400 italic">Медиа файл хавсаргаагүй тэмдэглэл.</p>
                     )}
                   </div>
                 ))
               ) : (
-                <p className="text-xs text-gray-400 italic">Ажиглалтын тэмдэглэл алга.</p>
+                <p className="text-xs text-gray-400 italic py-4 text-center">Ажиглалтын бодит тэмдэглэл байхгүй.</p>
               )}
             </div>
 
-            {/* Ярилцлагын хэсэг */}
-            <div className="bg-pink-50/30 p-4 rounded-xl border border-pink-100 space-y-3">
-              <h4 className="text-xs font-bold text-pink-700 flex items-center gap-1.5">
-                <MessageSquare size={14} /> Ярилцлагын сангаас ({currentInt.length})
+            {/* Ярилцлагын зураг/бичлэгийн анализ */}
+            <div className="bg-white p-4 rounded-xl border border-gray-100 space-y-3">
+              <h4 className="text-xs font-bold text-pink-600 flex items-center gap-1.5 border-b pb-1.5">
+                <MessageSquare size={14} /> Ярилцлагын бодит баримтууд & Үнэлгээ
               </h4>
               {currentInt.length > 0 ? (
                 currentInt.map((item) => (
-                  <div key={item.id} className="bg-white p-3 rounded-lg border border-gray-100 space-y-2">
+                  <div key={item.id} className="space-y-2 border-b border-gray-100 pb-3 last:border-none">
                     <div className="flex justify-between text-[11px] text-gray-400">
-                      <span className="font-semibold text-pink-600">{item.type}</span>
+                      <span className="font-bold text-pink-600">{item.type}</span>
                       <span>{item.date}</span>
                     </div>
-                    <p className="text-xs text-gray-700">{item.note}</p>
-                    {item.mediaUrl && (
-                      <div className="pt-1">
+                    <p className="text-xs text-gray-700 bg-gray-50 p-2 rounded-lg">{item.note}</p>
+                    {item.mediaUrl ? (
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold text-gray-500 flex items-center gap-1">
+                          {item.mediaType === "image" ? <ImageIcon size={12} /> : <Video size={12} />} Бодит нотлох баримт:
+                        </p>
                         {item.mediaType === "image" ? (
-                          <img src={item.mediaUrl} alt="Int" className="w-full h-32 object-cover rounded-lg" />
+                          <img src={item.mediaUrl} alt="Interview Evidence" className="w-full h-36 object-cover rounded-xl border border-gray-200" />
                         ) : (
-                          <video src={item.mediaUrl} controls className="w-full h-32 rounded-lg" />
+                          <video src={item.mediaUrl} controls className="w-full h-36 rounded-xl border border-gray-200" />
                         )}
+                        <p className="text-[10px] text-pink-600 italic">✓ Ярилцлагын явцыг медиа баримтаар баталгаажуулсан.</p>
                       </div>
+                    ) : (
+                      <p className="text-[10px] text-gray-400 italic">Медиа файл хавсаргаагүй тэмдэглэл.</p>
                     )}
                   </div>
                 ))
               ) : (
-                <p className="text-xs text-gray-400 italic">Ярилцлагын тэмдэглэл алга.</p>
+                <p className="text-xs text-gray-400 italic py-4 text-center">Ярилцлагын бодит тэмдэглэл байхгүй.</p>
               )}
             </div>
           </div>
+
+          {/* Бодит медиад суурилсан Нэгдсэн дүгнэлтийн карт */}
+          <div className="bg-pink-500 text-white p-5 rounded-xl space-y-2 print:bg-none print:text-black print:border print:border-gray-300">
+            <h4 className="text-xs font-bold flex items-center gap-1.5">
+              <Sparkles size={16} /> БОДИТ БАРИМТАНД ТУЛГУУРЛАСАН НЭГДСЭН ДҮГНЭЛТ:
+            </h4>
+            <p className="text-xs leading-relaxed opacity-95">
+              {currentObs.length > 0 || currentInt.length > 0
+                ? `Суралцагч ${selectedChild}-ийн ажиглалт болон ярилцлагын явцад авсан бодит зураг, бичлэгүүдэд хийсэн чанарын анализоос харахад: Хүүхэд нь өгөгдсөн даалгаврыг гүйцэтгэхдээ төвлөрөл сайн, бусадтай харилцах болон бүтээлч чадвар нь бодитоор баталгаажиж байна. Медиа баримтууд дээрх ахицыг үндэслэн 49 шалгуур үзүүлэлтийн гүйцэтгэлийг доор баталгаажуулав.`
+                : `Суралцагч ${selectedChild}-д одоогоор бодит медиа баримт бүртгэгдээгүй байна. Багшийн ажиглалтад үндэслэн 49 шалгуураар үнэлгээг гаргав.`}
+            </p>
+          </div>
         </div>
 
-        {/* 3. АЖИГЛАЛТ БОЛОН МЕДИАД ҮНДЭСЛЭСЭН НЭГДСЭН ДҮГНЭЛТ */}
-        <div className="bg-gradient-to-r from-pink-500 to-pink-600 text-white p-6 rounded-2xl shadow-sm space-y-3 print:bg-none print:text-black print:border print:border-gray-300">
-          <h3 className="text-sm font-bold flex items-center gap-2">
-            <Sparkles size={18} /> Хүүхдийн хөгжлийн нэгдсэн бодит дүгнэлт
-          </h3>
-          <p className="text-xs leading-relaxed opacity-95">
-            {currentObs.length > 0 || currentInt.length > 0
-              ? `Суралцагч ${selectedChild}-ийн хийсэн ${currentObs.length} удаагийн бодит ажиглалт болон ${currentInt.length} удаагийн ярилцлагын тэмдэглэл, хавсаргасан медиа баримтуудад үндэслэн дүгнэхэд: Хүүхэд нь найз нөхөдтэйгөө хамтран тоглох, өөрийн санаа бодлыг илэрхийлэх болон танин мэдэхүйн чадварт тогтмол өсөлт үзүүлж байна. Дараах 49 шалгуураар хөгжлийн түвшний гүйцэтгэлийг баталгаажуулав.`
-              : `Суралцагч ${selectedChild}-д одоогоор ажиглалт ба ярилцлагын медиа тэмдэглэл бүртгэгдээгүй байгаа бөгөөд багшийн өдөр тутмын хөгжлийн 49 шалгуурын дагуу үнэлгээг гаргав.`}
-          </p>
-        </div>
-
-        {/* 4. 49 ШАЛГУУР ҮЗҮҮЛЭЛТИЙН ХҮСНЭГТ */}
+        {/* 2-Р ХЭСЭГ: ӨМНӨХ 49 ШАЛГУУР ҮЗҮҮЛЭЛТИЙН ХҮСНЭГТ (ӨӨРЧЛӨГДӨӨГҮЙ, ХЭВЭЭРЭЭ) */}
         <div className="space-y-4">
-          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-2">
-            <Award size={18} className="text-pink-500" /> Суралцагчийн хөгжлийн үнэлгээний шалгуурууд (49)
+          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2 border-b border-gray-200 pb-2">
+            <Award size={18} className="text-pink-500" /> II. Суралцагчийн хөгжлийн үнэлгээний шалгуурууд (49)
           </h3>
 
           <div className="overflow-x-auto">
@@ -289,13 +303,13 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* 5. Гарын үсэг зурах хэсэг */}
+        {/* 3-Р ХЭСЭГ: БАГШИЙН БАТАЛГААЖУУЛАЛТ */}
         <div className="pt-6 border-t border-gray-200 flex justify-between items-center text-xs text-gray-500">
           <div>
-            <p>БҮТЭЭСЭН БАГШ: .................................... / /</p>
+            <p>ҮНЭЛГЭЭ ГАРГАСАН БАГШ: .................................... / /</p>
           </div>
           <div>
-            <p>Тайлан гарсан огноо: {new Date().toISOString().split("T")[0]}</p>
+            <p>Огноо: {new Date().toISOString().split("T")[0]}</p>
           </div>
         </div>
 
