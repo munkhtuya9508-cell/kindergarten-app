@@ -2,8 +2,8 @@ import Sidebar from "@/components/Sidebar";
 import "./globals.css";
 
 export const metadata = {
-  title: "Хөгжлийн Хуудас",
-  description: "Цэцэрлэгийн багшид зориулсан хөгжлийн ахицын систем",
+  title: "Цэцэрлэгийн Апп - Хөгжлийн Хуудас",
+  description: "Цэцэрлэгийн багшид зориулсан ахиц ба тайлангийн систем",
 };
 
 export default function RootLayout({
