@@ -12,14 +12,14 @@ interface Child {
 }
 
 export default function ChildrenPage() {
-  // Бааз дээрх хүүхдүүдийн анхны жагсаалт
+  // Хүүхдүүдийн анхны жагсаалт
   const [children, setChildren] = useState<Child[]>([
     { id: 1, name: "А. Болд", group: "Бэлтгэл Б", gender: "Эр", birthDate: "2021-05-12" },
     { id: 2, name: "Б. Болор", group: "Бэлтгэл Б", gender: "Эм", birthDate: "2021-08-20" },
     { id: 3, name: "Д. Бат", group: "Бэлтгэл Б", gender: "Эр", birthDate: "2021-02-15" },
   ]);
 
-  // Формын оруулах утгуудын State
+  // Формын утгуудын State
   const [name, setName] = useState("");
   const [group, setGroup] = useState("Бэлтгэл Б");
   const [gender, setGender] = useState("Эр");
@@ -36,29 +36,29 @@ export default function ChildrenPage() {
     }
 
     const newChild: Child = {
-      id: Date.now(), // Дахин давтагдашгүй ID
+      id: Date.now(),
       name,
       group,
       gender,
       birthDate: birthDate || "2021-01-01",
     };
 
-    // Жагсаалт руу шинэ хүүхдийг нэмэх
+    // Шинэ хүүхдийг жагсаалтын хамгийн эхэнд нэмэх
     setChildren([newChild, ...children]);
 
-    // Формын талбаруудыг цэвэрлэх
+    // Текст талбаруудыг цэвэрлэх
     setName("");
     setBirthDate("");
   };
 
   // Хүүхэд устгах функц
   const handleDeleteChild = (id: number) => {
-    if (confirm("Энэ хүүхдийн мэдээллийг устгахдаа суртай байна уу?")) {
+    if (confirm("Энэ хүүхдийн мэдээллийг устгахдаа итгэлтэй байна уу?")) {
       setChildren(children.filter((child) => child.id !== id));
     }
   };
 
-  // Хайлтаар шүүж харуулах
+  // Хайлтаар шүүх
   const filteredChildren = children.filter((child) =>
     child.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -143,7 +143,7 @@ export default function ChildrenPage() {
 
             <button
               type="submit"
-              className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 shadow-sm transition mt-2"
+              className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 shadow-sm transition mt-2 cursor-pointer"
             >
               <UserCheck size={18} /> Жагсаалтад нэмэх
             </button>
@@ -157,7 +157,6 @@ export default function ChildrenPage() {
               Бүртгэлтэй хүүхдүүд ({filteredChildren.length})
             </h2>
 
-            {/* Хайлтын хэсэг */}
             <div className="relative w-48">
               <Search className="absolute left-2.5 top-2.5 text-gray-400" size={14} />
               <input
