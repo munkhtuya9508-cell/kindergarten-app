@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Eye, Plus, Calendar, Image as ImageIcon, Video } from "lucide-react";
+import { Eye, Plus, Calendar, Image as ImageIcon, Video, Trash2 } from "lucide-react";
 
 interface Observation {
   id: number;
@@ -12,6 +12,25 @@ interface Observation {
   mediaType?: "image" | "video";
 }
 
+const DEFAULT_OBSERVATIONS: Observation[] = [
+  {
+    id: 1,
+    child: "А. Болд (Бэлтгэл Б)",
+    date: "2026-10-10",
+    note: "Найзуудтайгаа тоглоомоо хуваалцаж, хамтран бүтээлч тоглоом тоглож байна.",
+    mediaUrl: "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=500&q=80",
+    mediaType: "image",
+  },
+  {
+    id: 2,
+    child: "Б. Болор (Бэлтгэл Б)",
+    date: "2026-10-18",
+    note: "Уран зургаар дүрслэн зурахдаа өнгөний сонголт болон анхаарал төвлөрөл маш сайн байв.",
+    mediaUrl: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=500&q=80",
+    mediaType: "image",
+  },
+];
+
 export default function ObservationsPage() {
   const [childrenList, setChildrenList] = useState<string[]>([
     "А. Болд (Бэлтгэл Б)",
@@ -19,53 +38,60 @@ export default function ObservationsPage() {
     "Д. Бат (Бэлтгэл Б)",
   ]);
 
+  const [observations, setObservations] = useState<Observation[]>([]);
+
+  // 1. Анх ачаалагдахад localStorage-оос хүүхдүүд болон ажиглалтыг унших
   useEffect(() => {
-    const saved = localStorage.getItem("app_children");
-    if (saved) {
+    // Хүүхдүүдийн жагсаалт татах
+    const savedChildren = localStorage.getItem("app_children");
+    if (savedChildren) {
       try {
-        const parsed = JSON.parse(saved);
+        const parsed = JSON.parse(savedChildren);
         const names = parsed.map((c: any) => `${c.name} (${c.group})`);
         if (names.length > 0) setChildrenList(names);
       } catch (e) {
         console.error(e);
       }
     }
+
+    // Хадгалагдсан ажиглалтын тэмдэглэлүүд татах
+    const savedObs = localStorage.getItem("app_observations");
+    if (savedObs) {
+      try {
+        setObservations(JSON.parse(savedObs));
+      } catch (e) {
+        setObservations(DEFAULT_OBSERVATIONS);
+      }
+    } else {
+      setObservations(DEFAULT_OBSERVATIONS);
+    }
   }, []);
 
   const [selectedFilterChild, setSelectedFilterChild] = useState<string>("Бүх хүүхэд");
-  const [selectedFormChild, setSelectedFormChild] = useState<string>(childrenList[0] || "");
+  const [selectedFormChild, setSelectedFormChild] = useState<string>("");
   const [note, setNote] = useState("");
   const [mediaUrl, setMediaUrl] = useState<string>("");
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
 
-  const [observations, setObservations] = useState<Observation[]>([
-    {
-      id: 1,
-      child: "А. Болд (Бэлтгэл Б)",
-      date: "2026-10-10",
-      note: "Найзуудтайгаа тоглоомоо хуваалцаж, хамтран бүтээлч тоглоом тоглож байна.",
-      mediaUrl: "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=500&q=80",
-      mediaType: "image",
-    },
-    {
-      id: 2,
-      child: "Б. Болор (Бэлтгэл Б)",
-      date: "2026-10-18",
-      note: "Уран зургаар дүрслэн зурахдаа өнгөний сонголт болон анхаарал төвлөрөл маш сайн байв.",
-      mediaUrl: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=500&q=80",
-      mediaType: "image",
-    },
-  ]);
+  useEffect(() => {
+    if (childrenList.length > 0 && !selectedFormChild) {
+      setSelectedFormChild(childrenList[0]);
+    }
+  }, [childrenList, selectedFormChild]);
 
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setMediaUrl(url);
-      setMediaType(file.type.startsWith("video") ? "video" : "image");
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setMediaUrl(reader.result as string);
+        setMediaType(file.type.startsWith("video") ? "video" : "image");
+      };
+      reader.readAsDataURL(file);
     }
   };
 
+  // 2. Шинэ ажиглалт оруулаад автоматаар localStorage-д хадгалах
   const handleAddObservation = (e: React.FormEvent) => {
     e.preventDefault();
     if (!note.trim()) return;
@@ -79,9 +105,20 @@ export default function ObservationsPage() {
       mediaType,
     };
 
-    setObservations([newObs, ...observations]);
+    const updated = [newObs, ...observations];
+    setObservations(updated);
+    localStorage.setItem("app_observations", JSON.stringify(updated));
+
     setNote("");
     setMediaUrl("");
+  };
+
+  const handleDeleteObs = (id: number) => {
+    if (confirm("Энэ ажиглалтыг устгахдаа итгэлтэй байна уу?")) {
+      const updated = observations.filter((item) => item.id !== id);
+      setObservations(updated);
+      localStorage.setItem("app_observations", JSON.stringify(updated));
+    }
   };
 
   const filteredObservations =
@@ -97,11 +134,10 @@ export default function ObservationsPage() {
             Ажиглалтын тэмдэглэл 👁️
           </h1>
           <p className="text-xs text-gray-400 mt-1">
-            Хүүхэд бүрээр ажиглалтын тэмдэглэл, зураг болон бичлэг харах
+            Ажиглалт автоматаар хадгалагдах бөгөөд хүүхэд бүрээр шүүж харах боломжтой
           </p>
         </div>
 
-        {/* Хүүхдээр шүүх сонголт */}
         <div className="flex items-center gap-2 bg-white p-2 rounded-xl border border-gray-100 shadow-sm">
           <span className="text-xs font-semibold text-gray-600">Хүүхдээр шүүх:</span>
           <select
@@ -120,7 +156,7 @@ export default function ObservationsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-        {/* Шинэ ажиглалт оруулах форм */}
+        {/* Форм */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 md:col-span-1">
           <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
             <Plus className="text-pink-500" size={18} /> Шинэ ажиглалт бичих
@@ -131,7 +167,7 @@ export default function ObservationsPage() {
               <select
                 value={selectedFormChild}
                 onChange={(e) => setSelectedFormChild(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500 bg-white"
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500 bg-white font-medium text-gray-800"
               >
                 {childrenList.map((child) => (
                   <option key={child} value={child}>
@@ -153,7 +189,6 @@ export default function ObservationsPage() {
               />
             </div>
 
-            {/* Зураг / Бичлэг хавсаргах */}
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Зураг / Бичлэг хавсаргах:</label>
               <input
@@ -175,14 +210,14 @@ export default function ObservationsPage() {
 
             <button
               type="submit"
-              className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition"
+              className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
             >
               Тэмдэглэл хадгалах
             </button>
           </form>
         </div>
 
-        {/* Тэмдэглэлүүдийн жагсаалт (Зураг/Бичлэгтэй) */}
+        {/* Жагсаалт */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 md:col-span-2">
           <h2 className="text-sm font-bold text-gray-800 border-b border-gray-100 pb-3 flex justify-between items-center">
             <span>Ажиглалтын сан ({filteredObservations.length})</span>
@@ -194,17 +229,25 @@ export default function ObservationsPage() {
           <div className="space-y-4">
             {filteredObservations.length > 0 ? (
               filteredObservations.map((obs) => (
-                <div key={obs.id} className="p-4 bg-gray-50/70 rounded-2xl border border-gray-100 space-y-3">
+                <div key={obs.id} className="p-4 bg-gray-50/70 rounded-2xl border border-gray-100 space-y-3 relative group">
                   <div className="flex justify-between items-center text-xs">
                     <span className="font-bold text-pink-600 text-sm">{obs.child}</span>
-                    <span className="text-gray-400 flex items-center gap-1 font-medium">
-                      <Calendar size={13} /> {obs.date}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-gray-400 flex items-center gap-1 font-medium">
+                        <Calendar size={13} /> {obs.date}
+                      </span>
+                      <button
+                        onClick={() => handleDeleteObs(obs.id)}
+                        className="text-gray-400 hover:text-red-500 transition"
+                        title="Устгах"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
 
                   <p className="text-xs text-gray-700 leading-relaxed">{obs.note}</p>
 
-                  {/* Хавсаргасан Медиа харуулах хэсэг */}
                   {obs.mediaUrl && (
                     <div className="pt-2">
                       <p className="text-[11px] font-semibold text-gray-500 mb-1.5 flex items-center gap-1">
@@ -229,7 +272,7 @@ export default function ObservationsPage() {
               ))
             ) : (
               <p className="text-xs text-center text-gray-400 py-10">
-                Сонгосон хүүхдэд хамаарах ажиглалтын тэмдэглэл одоогоор байхгүй байна.
+                Сонгосон хүүхдэд хамаарах ажиглалтын тэмдэглэл байхгүй байна.
               </p>
             )}
           </div>

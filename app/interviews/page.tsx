@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { MessageSquare, Plus, Calendar, Image as ImageIcon, Video } from "lucide-react";
+import { MessageSquare, Plus, Calendar, Image as ImageIcon, Video, Trash2 } from "lucide-react";
 
 interface Interview {
   id: number;
@@ -13,6 +13,18 @@ interface Interview {
   mediaType?: "image" | "video";
 }
 
+const DEFAULT_INTERVIEWS: Interview[] = [
+  {
+    id: 1,
+    child: "А. Болд (Бэлтгэл Б)",
+    type: "Эцэг эхтэй хийсэн ярилцлага",
+    date: "2026-10-12",
+    note: "Гэрийн орчинд ном унших цагийг тохируулж, бие даан ном зааж өгөхөөр тохиров.",
+    mediaUrl: "https://images.unsplash.com/photo-1577896851231-70ef18881754?w=500&q=80",
+    mediaType: "image",
+  },
+];
+
 export default function InterviewsPage() {
   const [childrenList, setChildrenList] = useState<string[]>([
     "А. Болд (Бэлтгэл Б)",
@@ -20,44 +32,54 @@ export default function InterviewsPage() {
     "Д. Бат (Бэлтгэл Б)",
   ]);
 
+  const [interviews, setInterviews] = useState<Interview[]>([]);
+
   useEffect(() => {
-    const saved = localStorage.getItem("app_children");
-    if (saved) {
+    const savedChildren = localStorage.getItem("app_children");
+    if (savedChildren) {
       try {
-        const parsed = JSON.parse(saved);
+        const parsed = JSON.parse(savedChildren);
         const names = parsed.map((c: any) => `${c.name} (${c.group})`);
         if (names.length > 0) setChildrenList(names);
       } catch (e) {
         console.error(e);
       }
     }
+
+    const savedInt = localStorage.getItem("app_interviews");
+    if (savedInt) {
+      try {
+        setInterviews(JSON.parse(savedInt));
+      } catch (e) {
+        setInterviews(DEFAULT_INTERVIEWS);
+      }
+    } else {
+      setInterviews(DEFAULT_INTERVIEWS);
+    }
   }, []);
 
   const [selectedFilterChild, setSelectedFilterChild] = useState<string>("Бүх хүүхэд");
-  const [selectedFormChild, setSelectedFormChild] = useState<string>(childrenList[0] || "");
+  const [selectedFormChild, setSelectedFormChild] = useState<string>("");
   const [interviewType, setInterviewType] = useState("Хүүхэдтэй хийсэн ярилцлага");
   const [note, setNote] = useState("");
   const [mediaUrl, setMediaUrl] = useState<string>("");
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
 
-  const [interviews, setInterviews] = useState<Interview[]>([
-    {
-      id: 1,
-      child: "А. Болд (Бэлтгэл Б)",
-      type: "Эцэг эхтэй хийсэн ярилцлага",
-      date: "2026-10-12",
-      note: "Гэрийн орчинд ном унших цагийг тохируулж, бие даан ном зааж өгөхөөр тохиров.",
-      mediaUrl: "https://images.unsplash.com/photo-1577896851231-70ef18881754?w=500&q=80",
-      mediaType: "image",
-    },
-  ]);
+  useEffect(() => {
+    if (childrenList.length > 0 && !selectedFormChild) {
+      setSelectedFormChild(childrenList[0]);
+    }
+  }, [childrenList, selectedFormChild]);
 
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setMediaUrl(url);
-      setMediaType(file.type.startsWith("video") ? "video" : "image");
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setMediaUrl(reader.result as string);
+        setMediaType(file.type.startsWith("video") ? "video" : "image");
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -75,9 +97,20 @@ export default function InterviewsPage() {
       mediaType,
     };
 
-    setInterviews([newInterview, ...interviews]);
+    const updated = [newInterview, ...interviews];
+    setInterviews(updated);
+    localStorage.setItem("app_interviews", JSON.stringify(updated));
+
     setNote("");
     setMediaUrl("");
+  };
+
+  const handleDeleteInterview = (id: number) => {
+    if (confirm("Энэ ярилцлагыг устгахдаа итгэлтэй байна уу?")) {
+      const updated = interviews.filter((item) => item.id !== id);
+      setInterviews(updated);
+      localStorage.setItem("app_interviews", JSON.stringify(updated));
+    }
   };
 
   const filteredInterviews =
@@ -93,7 +126,7 @@ export default function InterviewsPage() {
             Ярилцлагын бүртгэл 💬
           </h1>
           <p className="text-xs text-gray-400 mt-1">
-            Эцэг эх болон хүүхэдтэй хийсэн ярилцлагыг зураг, бичлэгийн хамт хөтлөх
+            Ярилцлага автоматаар хадгалагдах бөгөөд зургийн хамт архивлагдана
           </p>
         </div>
 
@@ -125,7 +158,7 @@ export default function InterviewsPage() {
               <select
                 value={selectedFormChild}
                 onChange={(e) => setSelectedFormChild(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500 bg-white"
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500 bg-white font-medium text-gray-800"
               >
                 {childrenList.map((child) => (
                   <option key={child} value={child}>
@@ -153,7 +186,7 @@ export default function InterviewsPage() {
                 rows={4}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Тохиролцсон болон ярилцсан зүйлсийг бичнэ үү..."
+                placeholder="Тохиролцсон зүйлсийг бичнэ үү..."
                 className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-pink-500 bg-white"
                 required
               />
@@ -180,7 +213,7 @@ export default function InterviewsPage() {
 
             <button
               type="submit"
-              className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition"
+              className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
             >
               Тэмдэглэл хадгалах
             </button>
@@ -204,9 +237,18 @@ export default function InterviewsPage() {
                       <span className="font-bold text-pink-600 text-sm block">{item.child}</span>
                       <span className="text-[11px] font-semibold text-gray-500">{item.type}</span>
                     </div>
-                    <span className="text-gray-400 flex items-center gap-1 font-medium">
-                      <Calendar size={13} /> {item.date}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-gray-400 flex items-center gap-1 font-medium">
+                        <Calendar size={13} /> {item.date}
+                      </span>
+                      <button
+                        onClick={() => handleDeleteInterview(item.id)}
+                        className="text-gray-400 hover:text-red-500 transition"
+                        title="Устгах"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
 
                   <p className="text-xs text-gray-700 leading-relaxed">{item.note}</p>
@@ -214,33 +256,4 @@ export default function InterviewsPage() {
                   {item.mediaUrl && (
                     <div className="pt-2">
                       <p className="text-[11px] font-semibold text-gray-500 mb-1.5 flex items-center gap-1">
-                        {item.mediaType === "image" ? <ImageIcon size={14} /> : <Video size={14} />} Хавсаргасан медиа:
-                      </p>
-                      {item.mediaType === "image" ? (
-                        <img
-                          src={item.mediaUrl}
-                          alt="Interview Media"
-                          className="w-full max-h-64 object-cover rounded-xl border border-gray-200"
-                        />
-                      ) : (
-                        <video
-                          src={item.mediaUrl}
-                          controls
-                          className="w-full max-h-64 rounded-xl border border-gray-200"
-                        />
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))
-            ) : (
-              <p className="text-xs text-center text-gray-400 py-10">
-                Сонгосон хүүхдэд хамаарах ярилцлагын тэмдэглэл одоогоор байхгүй байна.
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+                        {
