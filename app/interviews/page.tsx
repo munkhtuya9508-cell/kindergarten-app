@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { MessageSquare, Plus, Calendar, Image as ImageIcon, Video, Trash2 } from "lucide-react";
+import { Plus, Calendar, Image as ImageIcon, Video, Trash2 } from "lucide-react";
 
 interface Interview {
   id: number;
@@ -13,49 +13,39 @@ interface Interview {
   mediaType?: "image" | "video";
 }
 
-const DEFAULT_INTERVIEWS: Interview[] = [
-  {
-    id: 1,
-    child: "А. Болд (Бэлтгэл Б)",
-    type: "Эцэг эхтэй хийсэн ярилцлага",
-    date: "2026-10-12",
-    note: "Гэрийн орчинд ном унших цагийг тохируулж, бие даан ном зааж өгөхөөр тохиров.",
-    mediaUrl: "https://images.unsplash.com/photo-1577896851231-70ef18881754?w=500&q=80",
-    mediaType: "image",
-  },
-];
-
 export default function InterviewsPage() {
-  const [childrenList, setChildrenList] = useState<string[]>([
-    "А. Болд (Бэлтгэл Б)",
-    "Б. Болор (Бэлтгэл Б)",
-    "Д. Бат (Бэлтгэл Б)",
-  ]);
-
+  const [childrenList, setChildrenList] = useState<string[]>([]);
   const [interviews, setInterviews] = useState<Interview[]>([]);
 
-  useEffect(() => {
-    const savedChildren = localStorage.getItem("app_children");
-    if (savedChildren) {
+  const loadChildren = () => {
+    const saved = localStorage.getItem("app_children");
+    if (saved) {
       try {
-        const parsed = JSON.parse(savedChildren);
+        const parsed = JSON.parse(saved);
         const names = parsed.map((c: any) => `${c.name} (${c.group})`);
-        if (names.length > 0) setChildrenList(names);
+        setChildrenList(names);
       } catch (e) {
         console.error(e);
       }
+    } else {
+      setChildrenList(["А. Болд (Бэлтгэл Б)", "Б. Болор (Бэлтгэл Б)", "Д. Бат (Бэлтгэл Б)"]);
     }
+  };
+
+  useEffect(() => {
+    loadChildren();
 
     const savedInt = localStorage.getItem("app_interviews");
     if (savedInt) {
       try {
         setInterviews(JSON.parse(savedInt));
       } catch (e) {
-        setInterviews(DEFAULT_INTERVIEWS);
+        console.error(e);
       }
-    } else {
-      setInterviews(DEFAULT_INTERVIEWS);
     }
+
+    window.addEventListener("storage", loadChildren);
+    return () => window.removeEventListener("storage", loadChildren);
   }, []);
 
   const [selectedFilterChild, setSelectedFilterChild] = useState<string>("Бүх хүүхэд");
@@ -66,10 +56,10 @@ export default function InterviewsPage() {
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
 
   useEffect(() => {
-    if (childrenList.length > 0 && !selectedFormChild) {
+    if (childrenList.length > 0 && !childrenList.includes(selectedFormChild)) {
       setSelectedFormChild(childrenList[0]);
     }
-  }, [childrenList, selectedFormChild]);
+  }, [childrenList]);
 
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -126,7 +116,7 @@ export default function InterviewsPage() {
             Ярилцлагын бүртгэл 💬
           </h1>
           <p className="text-xs text-gray-400 mt-1">
-            Ярилцлага автоматаар хадгалагдах бөгөөд зургийн хамт архивлагдана
+            Хүүхдүүд цэсийн бүртгэл энд автоматаар синхрончлогдоно
           </p>
         </div>
 
@@ -244,7 +234,6 @@ export default function InterviewsPage() {
                       <button
                         onClick={() => handleDeleteInterview(item.id)}
                         className="text-gray-400 hover:text-red-500 transition"
-                        title="Устгах"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -256,4 +245,33 @@ export default function InterviewsPage() {
                   {item.mediaUrl && (
                     <div className="pt-2">
                       <p className="text-[11px] font-semibold text-gray-500 mb-1.5 flex items-center gap-1">
-                        {
+                        {item.mediaType === "image" ? <ImageIcon size={14} /> : <Video size={14} />} Хавсаргасан медиа:
+                      </p>
+                      {item.mediaType === "image" ? (
+                        <img
+                          src={item.mediaUrl}
+                          alt="Media"
+                          className="w-full max-h-64 object-cover rounded-xl border border-gray-200"
+                        />
+                      ) : (
+                        <video
+                          src={item.mediaUrl}
+                          controls
+                          className="w-full max-h-64 rounded-xl border border-gray-200"
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p className="text-xs text-center text-gray-400 py-10">
+                Сонгосон хүүхдэд хамаарах ярилцлагын тэмдэглэл байхгүй байна.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Eye, Plus, Calendar, Image as ImageIcon, Video, Trash2 } from "lucide-react";
+import { Plus, Calendar, Image as ImageIcon, Video, Trash2 } from "lucide-react";
 
 interface Observation {
   id: number;
@@ -12,59 +12,41 @@ interface Observation {
   mediaType?: "image" | "video";
 }
 
-const DEFAULT_OBSERVATIONS: Observation[] = [
-  {
-    id: 1,
-    child: "А. Болд (Бэлтгэл Б)",
-    date: "2026-10-10",
-    note: "Найзуудтайгаа тоглоомоо хуваалцаж, хамтран бүтээлч тоглоом тоглож байна.",
-    mediaUrl: "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=500&q=80",
-    mediaType: "image",
-  },
-  {
-    id: 2,
-    child: "Б. Болор (Бэлтгэл Б)",
-    date: "2026-10-18",
-    note: "Уран зургаар дүрслэн зурахдаа өнгөний сонголт болон анхаарал төвлөрөл маш сайн байв.",
-    mediaUrl: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=500&q=80",
-    mediaType: "image",
-  },
-];
-
 export default function ObservationsPage() {
-  const [childrenList, setChildrenList] = useState<string[]>([
-    "А. Болд (Бэлтгэл Б)",
-    "Б. Болор (Бэлтгэл Б)",
-    "Д. Бат (Бэлтгэл Б)",
-  ]);
-
+  const [childrenList, setChildrenList] = useState<string[]>([]);
   const [observations, setObservations] = useState<Observation[]>([]);
 
-  // 1. Анх ачаалагдахад localStorage-оос хүүхдүүд болон ажиглалтыг унших
-  useEffect(() => {
-    // Хүүхдүүдийн жагсаалт татах
-    const savedChildren = localStorage.getItem("app_children");
-    if (savedChildren) {
+  // Хүүхдүүдийн шинэчлэгдсэн жагсаалтыг авах функц
+  const loadChildren = () => {
+    const saved = localStorage.getItem("app_children");
+    if (saved) {
       try {
-        const parsed = JSON.parse(savedChildren);
+        const parsed = JSON.parse(saved);
         const names = parsed.map((c: any) => `${c.name} (${c.group})`);
-        if (names.length > 0) setChildrenList(names);
+        setChildrenList(names);
       } catch (e) {
         console.error(e);
       }
+    } else {
+      setChildrenList(["А. Болд (Бэлтгэл Б)", "Б. Болор (Бэлтгэл Б)", "Д. Бат (Бэлтгэл Б)"]);
     }
+  };
 
-    // Хадгалагдсан ажиглалтын тэмдэглэлүүд татах
+  useEffect(() => {
+    loadChildren();
+
     const savedObs = localStorage.getItem("app_observations");
     if (savedObs) {
       try {
         setObservations(JSON.parse(savedObs));
       } catch (e) {
-        setObservations(DEFAULT_OBSERVATIONS);
+        console.error(e);
       }
-    } else {
-      setObservations(DEFAULT_OBSERVATIONS);
     }
+
+    // Хүүхдүүд цэсэнд өөрчлөлт ормогц энд АВТОМАТААР шинэчлэх сонсогч
+    window.addEventListener("storage", loadChildren);
+    return () => window.removeEventListener("storage", loadChildren);
   }, []);
 
   const [selectedFilterChild, setSelectedFilterChild] = useState<string>("Бүх хүүхэд");
@@ -74,10 +56,10 @@ export default function ObservationsPage() {
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
 
   useEffect(() => {
-    if (childrenList.length > 0 && !selectedFormChild) {
+    if (childrenList.length > 0 && !childrenList.includes(selectedFormChild)) {
       setSelectedFormChild(childrenList[0]);
     }
-  }, [childrenList, selectedFormChild]);
+  }, [childrenList]);
 
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -91,7 +73,6 @@ export default function ObservationsPage() {
     }
   };
 
-  // 2. Шинэ ажиглалт оруулаад автоматаар localStorage-д хадгалах
   const handleAddObservation = (e: React.FormEvent) => {
     e.preventDefault();
     if (!note.trim()) return;
@@ -134,7 +115,7 @@ export default function ObservationsPage() {
             Ажиглалтын тэмдэглэл 👁️
           </h1>
           <p className="text-xs text-gray-400 mt-1">
-            Ажиглалт автоматаар хадгалагдах бөгөөд хүүхэд бүрээр шүүж харах боломжтой
+            Хүүхдүүд цэсийн бүртгэл энд автоматаар синхрончлогдоно
           </p>
         </div>
 
@@ -156,7 +137,6 @@ export default function ObservationsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-        {/* Форм */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 md:col-span-1">
           <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
             <Plus className="text-pink-500" size={18} /> Шинэ ажиглалт бичих
@@ -217,7 +197,6 @@ export default function ObservationsPage() {
           </form>
         </div>
 
-        {/* Жагсаалт */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 md:col-span-2">
           <h2 className="text-sm font-bold text-gray-800 border-b border-gray-100 pb-3 flex justify-between items-center">
             <span>Ажиглалтын сан ({filteredObservations.length})</span>
@@ -229,7 +208,7 @@ export default function ObservationsPage() {
           <div className="space-y-4">
             {filteredObservations.length > 0 ? (
               filteredObservations.map((obs) => (
-                <div key={obs.id} className="p-4 bg-gray-50/70 rounded-2xl border border-gray-100 space-y-3 relative group">
+                <div key={obs.id} className="p-4 bg-gray-50/70 rounded-2xl border border-gray-100 space-y-3">
                   <div className="flex justify-between items-center text-xs">
                     <span className="font-bold text-pink-600 text-sm">{obs.child}</span>
                     <div className="flex items-center gap-3">
@@ -239,7 +218,6 @@ export default function ObservationsPage() {
                       <button
                         onClick={() => handleDeleteObs(obs.id)}
                         className="text-gray-400 hover:text-red-500 transition"
-                        title="Устгах"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -256,7 +234,7 @@ export default function ObservationsPage() {
                       {obs.mediaType === "image" ? (
                         <img
                           src={obs.mediaUrl}
-                          alt="Observation Media"
+                          alt="Media"
                           className="w-full max-h-64 object-cover rounded-xl border border-gray-200"
                         />
                       ) : (

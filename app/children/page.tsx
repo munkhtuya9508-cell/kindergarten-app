@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { UserPlus, Trash2, Search, UserCheck } from "lucide-react";
 
 interface Child {
@@ -11,29 +11,46 @@ interface Child {
   birthDate: string;
 }
 
-export default function ChildrenPage() {
-  // Хүүхдүүдийн анхны жагсаалт
-  const [children, setChildren] = useState<Child[]>([
-    { id: 1, name: "А. Болд", group: "Бэлтгэл Б", gender: "Эр", birthDate: "2021-05-12" },
-    { id: 2, name: "Б. Болор", group: "Бэлтгэл Б", gender: "Эм", birthDate: "2021-08-20" },
-    { id: 3, name: "Д. Бат", group: "Бэлтгэл Б", gender: "Эр", birthDate: "2021-02-15" },
-  ]);
+const DEFAULT_CHILDREN: Child[] = [
+  { id: 1, name: "А. Болд", group: "Бэлтгэл Б", gender: "Эр", birthDate: "2021-05-12" },
+  { id: 2, name: "Б. Болор", group: "Бэлтгэл Б", gender: "Эм", birthDate: "2021-08-20" },
+  { id: 3, name: "Д. Бат", group: "Бэлтгэл Б", gender: "Эр", birthDate: "2021-02-15" },
+];
 
-  // Формын утгуудын State
+export default function ChildrenPage() {
+  const [children, setChildren] = useState<Child[]>([]);
   const [name, setName] = useState("");
   const [group, setGroup] = useState("Бэлтгэл Б");
   const [gender, setGender] = useState("Эр");
   const [birthDate, setBirthDate] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Шинэ хүүхэд нэмэх функц
+  // Анх ачаалахад localStorage-оос татах
+  useEffect(() => {
+    const saved = localStorage.getItem("app_children");
+    if (saved) {
+      try {
+        setChildren(JSON.parse(saved));
+      } catch (e) {
+        setChildren(DEFAULT_CHILDREN);
+      }
+    } else {
+      setChildren(DEFAULT_CHILDREN);
+      localStorage.setItem("app_children", JSON.stringify(DEFAULT_CHILDREN));
+    }
+  }, []);
+
+  // Өөрчлөлтийг localStorage руу автоматаар хадгалж, эвент илгээх функц
+  const saveAndBroadcast = (updated: Child[]) => {
+    setChildren(updated);
+    localStorage.setItem("app_children", JSON.stringify(updated));
+    // Өөрчлөлт орсон тухай бусад цэсэнд мэдэгдэх
+    window.dispatchEvent(new Event("storage"));
+  };
+
   const handleAddChild = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!name.trim()) {
-      alert("Хүүхдийн нэрийг оруулна уу!");
-      return;
-    }
+    if (!name.trim()) return;
 
     const newChild: Child = {
       id: Date.now(),
@@ -43,22 +60,20 @@ export default function ChildrenPage() {
       birthDate: birthDate || "2021-01-01",
     };
 
-    // Шинэ хүүхдийг жагсаалтын хамгийн эхэнд нэмэх
-    setChildren([newChild, ...children]);
+    const updated = [newChild, ...children];
+    saveAndBroadcast(updated);
 
-    // Текст талбаруудыг цэвэрлэх
     setName("");
     setBirthDate("");
   };
 
-  // Хүүхэд устгах функц
   const handleDeleteChild = (id: number) => {
-    if (confirm("Энэ хүүхдийн мэдээллийг устгахдаа итгэлтэй байна уу?")) {
-      setChildren(children.filter((child) => child.id !== id));
+    if (confirm("Энэ хүүхдийг хасахдаа итгэлтэй байна уу?")) {
+      const updated = children.filter((child) => child.id !== id);
+      saveAndBroadcast(updated);
     }
   };
 
-  // Хайлтаар шүүх
   const filteredChildren = children.filter((child) =>
     child.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -70,12 +85,11 @@ export default function ChildrenPage() {
           Хүүхдийн бүртгэл 👶
         </h1>
         <p className="text-xs text-gray-400 mt-1">
-          Анги бүлгийн хүүхдүүдийн бүртгэлийг хөтлөх болон шинэ хүүхэд нэмэх
+          Энд нэмсэн ба хассан хүүхдийн мэдээлэл Ажиглалт, Ярилцлага цэсэнд шууд шинэчлэгдэнэ
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-        {/* ШИНЭ ХҮҮХЭД НЭМЭХ ФОРМ */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 md:col-span-1">
           <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
             <UserPlus className="text-pink-500" size={18} /> Шинэ хүүхэд нэмэх
@@ -143,14 +157,13 @@ export default function ChildrenPage() {
 
             <button
               type="submit"
-              className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 shadow-sm transition mt-2 cursor-pointer"
+              className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
             >
               <UserCheck size={18} /> Жагсаалтад нэмэх
             </button>
           </form>
         </div>
 
-        {/* ХҮҮХДҮҮДИЙН ЖАГСААЛТ */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 md:col-span-2">
           <div className="flex justify-between items-center flex-wrap gap-2 border-b border-gray-100 pb-3">
             <h2 className="text-sm font-bold text-gray-800">
@@ -191,7 +204,7 @@ export default function ChildrenPage() {
                   <button
                     onClick={() => handleDeleteChild(child.id)}
                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
-                    title="Устгах"
+                    title="Хасах / Устгах"
                   >
                     <Trash2 size={16} />
                   </button>
