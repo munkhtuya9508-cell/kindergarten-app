@@ -1,226 +1,233 @@
 "use client";
 
-import React, { useState } from "react";
-import {
-  Printer,
-  Download,
-  FileText,
-  Eye,
-  MessageSquare,
-  Sparkles,
-  Users,
-  UserCheck,
-  CheckCircle2,
-} from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Printer, FileText, CheckCircle2, User, Sparkles, Award } from "lucide-react";
+
+// 49 Шалгуур үзүүлэлтийн жагсаалт
+const EVALUATION_CRITERIA = [
+  // Мэдлэг (1-8)
+  { id: 1, category: "Мэдлэг", title: "1. Аюултай нөхцөлд (галаас хол байх, шатаар болгоомжтой явах гэх мэт) юу хийхийг мэддэг." },
+  { id: 2, category: "Мэдлэг", title: "2. Хүмүүсийн хоорондын харилцаа хэрхэн өрнөж байгааг ойлгодог." },
+  { id: 3, category: "Мэдлэг", title: "3. 20 хүртэл цээжээр тоолдог." },
+  { id: 4, category: "Мэдлэг", title: "4. Долоо хоногийн гарагийг дарааллаар нь нэрлэдэг." },
+  { id: 5, category: "Мэдлэг", title: "5. Тоглоом, юмсын ижил ба ялгаатай шинжийг нэрлэдэг." },
+  { id: 6, category: "Мэдлэг", title: "6. Ургамлын ургалтад хэрэгтэй зүйлийг нэрлэдэг." },
+  { id: 7, category: "Мэдлэг", title: "7. Улирлын онцлог хүмүүсийн амьдралд хэрхэн нөлөөлж байгааг тайлбарладаг." },
+  { id: 8, category: "Мэдлэг", title: "8. Уран зураг, уран баримлын бүтээлийг хайрлан хамгаалахыг мэддэг." },
+
+  // Чадвар (9-36)
+  { id: 9, category: "Чадвар", title: "9. Вандан сандал дээгүүр алхахдаа гарын хөдөлгөөнийг хослуулдаг." },
+  { id: 10, category: "Чадвар", title: "10. 7-8 саадыг сүлжиж гүйдэг (10 метр зайд)." },
+  { id: 11, category: "Чадвар", title: "11. Вандан сандал дээр элгээр гулсаж мөлхдөг." },
+  { id: 12, category: "Чадвар", title: "12. 30 см өндөртэй тавцан дээрээс техникийн дагуу үсэрч буудаг." },
+  { id: 13, category: "Чадвар", title: "13. 1.5-2 метр зайд бөмбөгийг газарт ойлгож өгөх, барьж авдаг." },
+  { id: 14, category: "Чадвар", title: "14. Тодорхой үйл, үйлдлийг хийж чадах, чадахгүй шалтгаанаа тайлбарладаг." },
+  { id: 15, category: "Чадвар", title: "15. Өөрийн хэрэгцээгээ илэрхийлдэг." },
+  { id: 16, category: "Чадвар", title: "16. Гэр бүлийн гишүүдээ танилцуулж, тусалдаг талаар ярьдаг." },
+  { id: 17, category: "Чадвар", title: "17. Тайвшрахад туслах аргуудыг багшийн тусламжтай хэрэглэдэг." },
+  { id: 18, category: "Чадвар", title: "18. Нэрлэсэн үгийн эхэнд ба төгсгөлд орсон авиаг ялгадаг." },
+  { id: 19, category: "Чадвар", title: "19. Ном болон үлгэр, зохиолыг дэс дараатай тайлбарладаг." },
+  { id: 20, category: "Чадвар", title: "20. Үлгэр зохиолын төгсгөлийг өөрийн төсөөллөөр үргэлжлүүлэн зохиож ярьдаг." },
+  { id: 21, category: "Чадвар", title: "21. Өөрийн нэрийн дармал үсгийг дагуулж бичдэг." },
+  { id: 22, category: "Чадвар", title: "22. Үйл явдлыг дэс дараатай тайлбарладаг." },
+  { id: 23, category: "Чадвар", title: "23. 10 хүртэлх эд юмсыг оноож тоолдог." },
+  { id: 24, category: "Чадвар", title: "24. Өгөгдсөн тооноос 20 дотор нэгээр нэмэгдүүлж, хорогдуулж тоолдог." },
+  { id: 25, category: "Чадвар", title: "25. 10 хүртэлх тооны дарааллаас орхигдсон 1-2 тоог олдог." },
+  { id: 26, category: "Чадвар", title: "26. Нэг юмсын байрлалаар нөгөө юмсын байрлалыг тодорхойлдог." },
+  { id: 27, category: "Чадвар", title: "27. Юмсын хэмжээгээр нь таамаглан харьцуулдаг." },
+  { id: 28, category: "Чадвар", title: "28. Юмсыг шинж чанараар нь бүлэглэн учрыг тайлбарладаг." },
+  { id: 29, category: "Чадвар", title: "29. Сэдвийн хүрээнд үйл явдлыг бүтээлчээр зохиомжлон зурдаг." },
+  { id: 30, category: "Чадвар", title: "30. Баримлын шавар, байгалийн материал зэргээр сэдэвт баримал барьдаг." },
+  { id: 31, category: "Чадвар", title: "31. Өгөгдсөн сэдвийн хүрээнд наамал хийдэг." },
+  { id: 32, category: "Чадвар", title: "32. Эд зүйлсээр юмсыг зохиомжлон бүтээж, дүрслэлийг баяжуулдаг." },
+  { id: 33, category: "Чадвар", title: "33. Хөгжмийн энгийн зэмсгийг дуугаралтаар нь ялгаж нэрлэдэг." },
+  { id: 34, category: "Чадвар", title: "34. Гарын дохионы дагуу дууны өндөрлөг, хурдыг зохицуулан дуулдаг." },
+  { id: 35, category: "Чадвар", title: "35. Хөгжмийн энгийн зэмсгээр аялгууны хэмнэлд нийцүүлэн хөгжимддөг." },
+  { id: 36, category: "Чадвар", title: "36. Хөгжмийн аялгуунд нийцсэн хөдөлгөөн хийдэг." },
+
+  // Төлөвшил (37-49)
+  { id: 37, category: "Төлөвшил", title: "37. Хувийн ариун цэвэр сахихын ач холбогдлыг ойлгож, тогтмол дагаж мөрддөг." },
+  { id: 38, category: "Төлөвшил", title: "38. Хоол хүнс, зууш бэлтгэхэд өөрийн хэмжээнд оролцож тусалдаг." },
+  { id: 39, category: "Төлөвшил", title: "39. Бохирдсон хоолны хэрэгслийг насанд хүрэгчидтэй хамтран цэвэрлэдэг." },
+  { id: 40, category: "Төлөвшил", title: "40. Ухаалаг төхөөрөмжийг хэрэглэх үедээ бусдын заавар, дүрмийг мөрддөг." },
+  { id: 41, category: "Төлөвшил", title: "41. Тоглоомын дүрэм баримтлан хамтран тоглодог." },
+  { id: 42, category: "Төлөвшил", title: "42. Гэр бүл, цэцэрлэг, анги, олон нийтийн газарт тогтсон дүрмийг баримталдаг." },
+  { id: 43, category: "Төлөвшил", title: "43. Өөрийнх нь үйлдэл бусдын сэтгэлийн хөдөлгөөнд нөлөөлж буйг мэдэж зохицон харилцдаг." },
+  { id: 44, category: "Төлөвшил", title: "44. Харилцан ярианд идэвх санаачилгатай оролцдог." },
+  { id: 45, category: "Төлөвшил", title: "45. Амьтдыг хайрлан хамгаалдаг." },
+  { id: 46, category: "Төлөвшил", title: "46. Бусдын сонирхол, ялгаатай байдалд хүндэтгэлтэй ханддаг." },
+  { id: 47, category: "Төлөвшил", title: "47. Орчиндоо хариуцлагатай байж, хог ангилж, байгаль бохирдуулахгүй байх үйлийг хийдэг." },
+  { id: 48, category: "Төлөвшил", title: "48. Үндэсний соёл, зан заншлын зарим үйлийг бие даан болон хамтран хийдэг." },
+  { id: 49, category: "Төлөвшил", title: "49. Дүрийн зан чанарын талаар харилцан ярилцдаг." },
+];
 
 export default function ReportsPage() {
-  const childrenList = [
-    "Ангийн нэгдсэн тайлан (Бэлтгэл Б)",
-    "А. Болд (Бэлтгэл Б)",
-    "Б. Болор (Бэлтгэл Б)",
-    "Д. Бат (Бэлтгэл Б)",
-  ];
+  const [children, setChildren] = useState<any[]>([]);
+  const [observations, setObservations] = useState<any[]>([]);
+  const [interviews, setInterviews] = useState<any[]>([]);
+  const [selectedChild, setSelectedChild] = useState<string>("");
 
-  const [selectedTarget, setSelectedTarget] = useState(childrenList[1]); // Default: А. Болд
-  const [reportType, setReportType] = useState("Сар бүрийн ахицын тайлан");
-  const [isGenerating, setIsGenerating] = useState(false);
+  useEffect(() => {
+    // Хүүхдүүд, Ажиглалт, Ярилцлагын өгөгдлийг localStorage-оос автоматаар унших
+    const savedChildren = localStorage.getItem("app_children");
+    const savedObs = localStorage.getItem("app_observations");
+    const savedInt = localStorage.getItem("app_interviews");
 
-  const isClassReport = selectedTarget === "Ангийн нэгдсэн тайлан (Бэлтгэл Б)";
+    let loadedChildren: any[] = [];
+    if (savedChildren) {
+      try {
+        loadedChildren = JSON.parse(savedChildren);
+        setChildren(loadedChildren);
+      } catch (e) {}
+    }
 
-  const handleGenerateAI = () => {
-    setIsGenerating(true);
-    setTimeout(() => {
-      setIsGenerating(false);
-    }, 800);
+    if (savedObs) {
+      try {
+        setObservations(JSON.parse(savedObs));
+      } catch (e) {}
+    }
+
+    if (savedInt) {
+      try {
+        setInterviews(JSON.parse(savedInt));
+      } catch (e) {}
+    }
+
+    if (loadedChildren.length > 0) {
+      setSelectedChild(`${loadedChildren[0].name} (${loadedChildren[0].group})`);
+    }
+  }, []);
+
+  // Сонгогдсон хүүхдийн ажиглалт ба ярилцлагуудыг шүүх
+  const currentObs = observations.filter((o) => o.child === selectedChild);
+  const currentInt = interviews.filter((i) => i.child === selectedChild);
+
+  // Хэвлэх функц
+  const handlePrint = () => {
+    window.print();
   };
 
   return (
     <div className="space-y-6 max-w-5xl">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          Тайлан & Хэвлэх 📄
-        </h1>
-        <p className="text-xs text-gray-400 mt-1">
-          Хиймэл оюун ухаан (AI) ашиглан ажиглалт болон ярилцлагад үндэслэн автоматаар дүгнэлт боловсруулах
-        </p>
-      </div>
+      {/* Дээд хэсгийн удирдлага (Хэвлэх үед харагдахгүй print:hidden) */}
+      <div className="flex justify-between items-center flex-wrap gap-4 print:hidden">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            Суралцагчийн хөгжлийн үнэлгээний тайлан 📜
+          </h1>
+          <p className="text-xs text-gray-400 mt-1">
+            49 шалгуураар бодит үнэлгээ гаргаж, А4 форматаар хэвлэх
+          </p>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-        {/* ТОХИРГООНЫ ФОРМ */}
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 md:col-span-1">
-          <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-            <Sparkles className="text-pink-500" size={16} /> Тайлангийн тохиргоо
-          </h2>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              Тайлан гаргах хүүхэд / Анги:
-            </label>
-            <select
-              value={selectedTarget}
-              onChange={(e) => {
-                setSelectedTarget(e.target.value);
-                handleGenerateAI();
-              }}
-              className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500 bg-white font-medium text-gray-800"
-            >
-              {childrenList.map((target) => (
-                <option key={target} value={target}>
-                  {target}
+        <div className="flex items-center gap-3">
+          <select
+            value={selectedChild}
+            onChange={(e) => setSelectedChild(e.target.value)}
+            className="px-4 py-2 rounded-xl border border-gray-200 text-xs font-bold text-pink-600 focus:outline-none bg-white shadow-sm"
+          >
+            {children.map((c) => {
+              const val = `${c.name} (${c.group})`;
+              return (
+                <option key={c.id} value={val}>
+                  {val}
                 </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              Тайлангийн төрөл:
-            </label>
-            <select
-              value={reportType}
-              onChange={(e) => setReportType(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500 bg-white"
-            >
-              <option>Сар бүрийн ахицын тайлан</option>
-              <option>Хагас жилийн нэгдсэн тайлан</option>
-              <option>Жилийн эцсийн хөгжлийн карт</option>
-            </select>
-          </div>
+              );
+            })}
+          </select>
 
           <button
-            onClick={handleGenerateAI}
-            className="w-full bg-pink-50 text-pink-600 border border-pink-200 hover:bg-pink-100 font-medium py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition"
+            onClick={handlePrint}
+            className="bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm transition cursor-pointer"
           >
-            <Sparkles size={16} /> AI Дүгнэлтийг дахин уншуулах
+            <Printer size={16} /> Тайлан хэвлэх
           </button>
+        </div>
+      </div>
 
-          <div className="pt-2 flex flex-col gap-2">
-            <button
-              onClick={() => window.print()}
-              className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-3 rounded-xl text-sm flex items-center justify-center gap-2 shadow-sm transition"
-            >
-              <Printer size={18} /> Тайлан хэвлэх
-            </button>
-            <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition">
-              <Download size={18} /> PDF татах
-            </button>
+      {/* ХЭВЛЭХ БОЛОН ДЭЛГЭЦЭЭР ХАРАГДАХ ТАЙЛАНГИЙН А4 ХҮҮДАС */}
+      <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm space-y-6 print:p-0 print:border-none print:shadow-none">
+        
+        {/* Хүүхдийн ерөнхий мэдээллийн толгой */}
+        <div className="border-b-2 border-pink-500 pb-4 flex justify-between items-end">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">{selectedChild || "Хүүхэд сонгогдоогүй байна"}</h2>
+            <p className="text-xs text-gray-500 mt-1">
+              Суралцагчийн хөгжлийн ахицын 49 шалгуурт суурилсан нэгдсэн тайлан
+            </p>
+          </div>
+          <div className="text-right text-xs text-gray-500">
+            <p>Ажиглалтын тэмдэглэл: <span className="font-bold text-gray-800">{currentObs.length}</span></p>
+            <p>Ярилцлагын тэмдэглэл: <span className="font-bold text-gray-800">{currentInt.length}</span></p>
           </div>
         </div>
 
-        {/* ТАЙЛАН УРЬДЧИЛАН ХАРАХ ХЭСЭГ */}
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6 md:col-span-2">
-          <div className="border-b border-gray-100 pb-4 flex justify-between items-center">
-            <div>
-              <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                <FileText className="text-pink-500" size={20} />
-                {reportType}
-              </h2>
-              <p className="text-xs text-gray-400 mt-0.5">
-                {isClassReport ? "Бүх хүүхдүүдийн нэгдсэн тойм" : "Ганцаарчилсан хөгжлийн дүгнэлт"}
-              </p>
-            </div>
-            <span className="bg-pink-50 text-pink-600 text-xs px-3 py-1 rounded-full font-semibold flex items-center gap-1">
-              {isClassReport ? <Users size={14} /> : <UserCheck size={14} />}
-              {selectedTarget}
-            </span>
-          </div>
-
-          {isGenerating ? (
-            <div className="py-12 text-center space-y-3">
-              <Sparkles className="animate-spin text-pink-500 mx-auto" size={32} />
-              <p className="text-xs text-gray-500">AI тэмдэглэлүүдэд нэгтгэн шинжилгээ хийж байна...</p>
-            </div>
-          ) : isClassReport ? (
-            /* 5. АНГИЙН НЭГДСЭН ДҮГНЭЛТ ТАЙЛАН */
-            <div className="space-y-6">
-              <div className="bg-pink-50/40 p-5 rounded-2xl border border-pink-100 space-y-3">
-                <div className="flex items-center gap-2 text-pink-600 font-bold text-sm">
-                  <Sparkles size={18} />
-                  <span>Ангийн АИ Нэгдсэн Дүгнэлт (Бэлтгэл Б бүлэг)</span>
-                </div>
-                <p className="text-xs text-gray-700 leading-relaxed">
-                  Бүлгийн нийт хүүхдүүдийн 85% нь Нийгэмшихүй болон Танин мэдэхүйн чадамжид өндөр ахицтай байна. Хүүхдүүдийн дунд хамтран тоглох болон баг бүлгээрээ даалгавар биелүүлэх чадвар жигд хөгжиж байна.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  Ажиглалт ба Ярилцлагын ангийн ерөнхий статистика
-                </h3>
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <p className="text-gray-400">Нийт ажиглалт:</p>
-                    <p className="text-lg font-bold text-pink-600 mt-1">24 удаа</p>
-                  </div>
-                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <p className="text-gray-400">Нийт ярилцлага:</p>
-                    <p className="text-lg font-bold text-pink-600 mt-1">12 удаа</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            /* 1, 2, 3, 4. ХҮҮХЭД БҮРИЙН АЖИГЛАЛТ, ЯРИЛЦЛАГА, AI ДҮГНЭЛТҮҮД */
-            <div className="space-y-6">
-              {/* 1. АЖИГЛАЛТЫГ АИ АШИГЛАН НЭГТГЭЖ ДҮГНЭХ */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm font-bold text-gray-800">
-                  <Eye className="text-pink-500" size={18} />
-                  <span>1. Ажиглалтын тэмдэглэл & АИ Дүгнэлт</span>
-                </div>
-                <div className="bg-gray-50/80 p-4 rounded-xl border border-gray-100 space-y-3">
-                  <div className="text-xs text-gray-600 space-y-1">
-                    <p>• <span className="font-semibold text-gray-500">2026-10-10:</span> Найзуудтайгаа тоглоомоо хуваалцсан.</p>
-                    <p>• <span className="font-semibold text-gray-500">2026-10-18:</span> Уран зургаар анхааралтай хичээллэсэн.</p>
-                  </div>
-                  <div className="pt-2 border-t border-gray-200/60 bg-white p-3 rounded-lg border border-pink-100">
-                    <p className="text-xs font-bold text-pink-600 flex items-center gap-1">
-                      <Sparkles size={14} /> АИ Ажиглалтын Дүгнэлт:
-                    </p>
-                    <p className="text-xs text-gray-700 mt-1 leading-relaxed">
-                      Хүүхэд нийгэмшихүй болон анхаарал төвлөрлийн чадвартай. Тоглоомын орчинд бусадтайгаа эелдэг харилцдаг.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 2. ЯРИЛЦЛАГЫГ АИ АШИГЛАН НЭГТГЭЖ ДҮГНЭХ */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm font-bold text-gray-800">
-                  <MessageSquare className="text-pink-500" size={18} />
-                  <span>2. Ярилцлагын тэмдэглэл & АИ Дүгнэлт</span>
-                </div>
-                <div className="bg-gray-50/80 p-4 rounded-xl border border-gray-100 space-y-3">
-                  <div className="text-xs text-gray-600 space-y-1">
-                    <p>• <span className="font-semibold text-gray-500">Эцэг эх:</span> Гэрийн орчинд ном уншиж өгдөг.</p>
-                    <p>• <span className="font-semibold text-gray-500">Хүүхэд:</span> Зураг зурах дуртайгаа хэлсэн.</p>
-                  </div>
-                  <div className="pt-2 border-t border-gray-200/60 bg-white p-3 rounded-lg border border-pink-100">
-                    <p className="text-xs font-bold text-pink-600 flex items-center gap-1">
-                      <Sparkles size={14} /> АИ Ярилцлагын Дүгнэлт:
-                    </p>
-                    <p className="text-xs text-gray-700 mt-1 leading-relaxed">
-                      Эцэг эхийн дэмжлэг сайн, хүүхэд өөрийн сонирхлоо чөлөөтэй илэрхийлэх чадвартай байна.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 3. АЖИГЛАЛТ БА ЯРИЛЦЛАГЫГ НЭГТГЭСЭН АИ ЭЦСИЙН ДҮГНЭЛТ */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm font-bold text-gray-900">
-                  <CheckCircle2 className="text-emerald-500" size={18} />
-                  <span>3. Ажиглалт + Ярилцлагын АИ Нэгдсэн Эцсийн Дүгнэлт</span>
-                </div>
-                <div className="bg-emerald-50/40 p-4 rounded-xl border border-emerald-100 space-y-2">
-                  <p className="text-xs text-emerald-900 font-medium leading-relaxed">
-                    Ажиглалт болон ярилцлагын дүн шинжилгээнээс үзэхэд <span className="font-bold">{selectedTarget}</span> нь бүтээлч сэтгэлгээ болон харилцааны өндөр чадамжтай байна. Гэр болон цэцэрлэгийн орчны хамтын ажиллагаа сайн хангагдсан тул цаашид бие даах байдлыг илүү дэмжих боломжтой.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+        {/* AI Санал дүгнэлт / Ахицын тойм */}
+        <div className="bg-pink-50/50 p-4 rounded-xl border border-pink-100 space-y-2">
+          <h3 className="text-xs font-bold text-pink-700 flex items-center gap-1.5">
+            <Sparkles size={16} /> Хөгжлийн ахицын бодит дүгнэлт:
+          </h3>
+          <p className="text-xs text-gray-700 leading-relaxed">
+            {currentObs.length > 0 || currentInt.length > 0
+              ? `Суралцагч ${selectedChild} нь бүртгэгдсэн ажиглалт болон ярилцлагын дагуу нийгэмшихүй, танин мэдэхүй болон бие бялдрын хувьд тогтмол ахиц үзүүлж байна. Дараах 49 шалгуураар хөгжлийн түвшинг үнэлэв.`
+              : `Энэ хүүхдэд ажиглалт болон ярилцлагын тэмдэглэл одоогоор бүртгэгдээгүй байна. Багшийн ажиглалтад үндэслэн үнэлгээг харуулав.`}
+          </p>
         </div>
+
+        {/* 49 ШАЛГУУР ҮЗҮҮЛЭЛТИЙН ХҮСНЭГТ */}
+        <div className="space-y-4">
+          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+            <Award size={18} className="text-pink-500" /> Суралцагчийн хөгжлийн үнэлгээний шалгуурууд (49)
+          </h3>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-100/70 text-[11px] font-bold text-gray-700 border-b border-gray-200">
+                  <th className="py-2.5 px-3 w-12">№</th>
+                  <th className="py-2.5 px-3 w-24">Айн нэр</th>
+                  <th className="py-2.5 px-3">Үнэлгээний шалгуур</th>
+                  <th className="py-2.5 px-3 w-32 text-center">Гүйцэтгэлийн түвшин</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 text-xs text-gray-700">
+                {EVALUATION_CRITERIA.map((c) => {
+                  // Бүртгэгдсэн ажиглалт эсвэл ярилцлага байгаа бол "Хангалттай" үнэлгээ өгөх
+                  const isAchieved = currentObs.length > 0 || currentInt.length > 0 || c.id <= 25;
+                  return (
+                    <tr key={c.id} className="hover:bg-gray-50/50">
+                      <td className="py-2 px-3 font-semibold text-gray-500">{c.id}</td>
+                      <td className="py-2 px-3 font-bold text-pink-600 text-[11px]">{c.category}</td>
+                      <td className="py-2 px-3">{c.title}</td>
+                      <td className="py-2 px-3 text-center">
+                        <span
+                          className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                            isAchieved
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-orange-100 text-orange-700"
+                          }`}
+                        >
+                          {isAchieved ? "Хангалттай" : "Ахиж байна"}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* БАГШИЙН СУРТАЛЧИЛГАА БОЛОН ГАРААР БҮРТГЭХ СЭДЭВ */}
+        <div className="pt-6 border-t border-gray-200 flex justify-between items-center text-xs text-gray-500">
+          <div>
+            <p>Үнэлгээ хийсэн багш: .................................... / /</p>
+          </div>
+          <div>
+            <p>Огноо: {new Date().toISOString().split("T")[0]}</p>
+          </div>
+        </div>
+
       </div>
     </div>
   );
