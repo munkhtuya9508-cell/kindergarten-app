@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { UserPlus, Trash2, Search, UserCheck, Edit2, X, Check } from "lucide-react";
+import { UserPlus, Trash2, Search, UserCheck, Edit2, X, Check, ArrowDownAZ } from "lucide-react";
 
 interface Child {
   id: number;
@@ -25,30 +25,38 @@ export default function ChildrenPage() {
   const [birthDate, setBirthDate] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Засварлаж байгаа хүүхдийг хадгалах State
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const [editGroup, setEditGroup] = useState("");
   const [editGender, setEditGender] = useState("");
   const [editBirthDate, setEditBirthDate] = useState("");
 
+  // Нэрсээр цагаан толгойн дагуу эрэмбэлэх функц (localeCompare mn)
+  const sortChildrenByName = (list: Child[]) => {
+    return [...list].sort((a, b) => a.name.localeCompare(b.name, "mn"));
+  };
+
   useEffect(() => {
     const saved = localStorage.getItem("app_children");
     if (saved) {
       try {
-        setChildren(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        setChildren(sortChildrenByName(parsed));
       } catch (e) {
-        setChildren(DEFAULT_CHILDREN);
+        setChildren(sortChildrenByName(DEFAULT_CHILDREN));
       }
     } else {
-      setChildren(DEFAULT_CHILDREN);
-      localStorage.setItem("app_children", JSON.stringify(DEFAULT_CHILDREN));
+      const sortedDefault = sortChildrenByName(DEFAULT_CHILDREN);
+      setChildren(sortedDefault);
+      localStorage.setItem("app_children", JSON.stringify(sortedDefault));
     }
   }, []);
 
   const saveAndBroadcast = (updated: Child[]) => {
-    setChildren(updated);
-    localStorage.setItem("app_children", JSON.stringify(updated));
+    // Автоматаар нэрсийн дарааллаар эрэмбэлж хадгалах
+    const sorted = sortChildrenByName(updated);
+    setChildren(sorted);
+    localStorage.setItem("app_children", JSON.stringify(sorted));
     window.dispatchEvent(new Event("storage"));
   };
 
@@ -64,7 +72,7 @@ export default function ChildrenPage() {
       birthDate: birthDate || "2021-01-01",
     };
 
-    const updated = [newChild, ...children];
+    const updated = [...children, newChild];
     saveAndBroadcast(updated);
 
     setName("");
@@ -78,7 +86,6 @@ export default function ChildrenPage() {
     }
   };
 
-  // Засварлах горим эхлүүлэх
   const startEditing = (child: Child) => {
     setEditingId(child.id);
     setEditName(child.name);
@@ -87,12 +94,10 @@ export default function ChildrenPage() {
     setEditBirthDate(child.birthDate);
   };
 
-  // Засварыг цуцлах
   const cancelEditing = () => {
     setEditingId(null);
   };
 
-  // Засварыг хадгалах
   const handleSaveEdit = (id: number) => {
     if (!editName.trim()) return;
 
@@ -124,7 +129,7 @@ export default function ChildrenPage() {
           Хүүхдийн бүртгэл 👶
         </h1>
         <p className="text-xs text-gray-400 mt-1">
-          Хүүхдийн мэдээллийг шинээр нэмэх, засах болон устгах хэсэг
+          Хүүхдүүдийн нэрс цагаан толгойн дарааллаар (А-Я) автоматаар эрэмбэлэгдэнэ
         </p>
       </div>
 
@@ -204,11 +209,11 @@ export default function ChildrenPage() {
           </form>
         </div>
 
-        {/* ХҮҮХДҮҮДИЙН ЖАГСААЛТ ВАН ЗАСВАРЛАХ ХЭСЭГ */}
+        {/* ХҮҮХДҮҮДИЙН ЭРЭМБЭЛЭГДСЭН ЖАГСААЛТ */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 md:col-span-2">
           <div className="flex justify-between items-center flex-wrap gap-2 border-b border-gray-100 pb-3">
-            <h2 className="text-sm font-bold text-gray-800">
-              Бүртгэлтэй хүүхдүүд ({filteredChildren.length})
+            <h2 className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+              <ArrowDownAZ size={16} className="text-pink-500" /> Бүртгэлтэй хүүхдүүд ({filteredChildren.length})
             </h2>
 
             <div className="relative w-48">
@@ -228,7 +233,6 @@ export default function ChildrenPage() {
               filteredChildren.map((child) => (
                 <div key={child.id} className="py-3 px-2 rounded-xl transition hover:bg-pink-50/20">
                   {editingId === child.id ? (
-                    /* ЗАСВАРЛАХ ФОРМ */
                     <div className="space-y-3 bg-pink-50/40 p-3 rounded-xl border border-pink-100">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <input
@@ -285,7 +289,6 @@ export default function ChildrenPage() {
                       </div>
                     </div>
                   ) : (
-                    /* ЭНГЭЙН ХАРАГДАХ МӨР */
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-pink-100 text-pink-600 font-bold text-xs flex items-center justify-center">
