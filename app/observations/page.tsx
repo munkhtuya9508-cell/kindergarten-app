@@ -1,15 +1,19 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Plus, Calendar, Image as ImageIcon, Video, Trash2 } from "lucide-react";
+import { Plus, Calendar, Image as ImageIcon, Video, Trash2, X } from "lucide-react";
+
+interface MediaItem {
+  url: string;
+  type: "image" | "video";
+}
 
 interface Observation {
   id: number;
   child: string;
   date: string;
   note: string;
-  mediaUrl?: string;
-  mediaType?: "image" | "video";
+  mediaList?: MediaItem[];
 }
 
 export default function ObservationsPage() {
@@ -21,13 +25,21 @@ export default function ObservationsPage() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        const names = parsed.map((c: any) => `${c.name} (${c.group})`);
+        // Зөвхөн нэрийн цагаан толгойн дарааллаар эрэмбэлэх
+        const sorted = parsed.sort((a: any, b: any) => {
+          const getFirstName = (name: string) => {
+            const parts = name.trim().split(" ");
+            return parts.length > 1 ? parts.slice(1).join(" ") : name;
+          };
+          return getFirstName(a.name).localeCompare(getFirstName(b.name), "mn");
+        });
+        const names = sorted.map((c: any) => `${c.name} (${c.group})`);
         setChildrenList(names);
       } catch (e) {
         console.error(e);
       }
     } else {
-      setChildrenList(["А. Болд (Бэлтгэл Б)", "Б. Болор (Бэлтгэл Б)", "Д. Бат (Бэлтгэл Б)"]);
+      setChildrenList(["А. Болд (Бэлтгэл Б)", "Д. Бат (Бэлтгэл Б)", "Б. Болор (Бэлтгэл Б)"]);
     }
   };
 
@@ -49,11 +61,9 @@ export default function ObservationsPage() {
 
   const [selectedFilterChild, setSelectedFilterChild] = useState<string>("Бүх хүүхэд");
   const [selectedFormChild, setSelectedFormChild] = useState<string>("");
-  // Өнөөдрийн огноог анхны утга болгож өгнө (засах боломжтой)
   const [obsDate, setObsDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [note, setNote] = useState("");
-  const [mediaUrl, setMediaUrl] = useState<string>("");
-  const [mediaType, setMediaType] = useState<"image" | "video">("image");
+  const [mediaList, setMediaList] = useState<MediaItem[]>([]);
 
   useEffect(() => {
     if (childrenList.length > 0 && !childrenList.includes(selectedFormChild)) {
@@ -61,16 +71,36 @@ export default function ObservationsPage() {
     }
   }, [childrenList]);
 
-  const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+  // Олон файл сонгон оруулах функц
+  const handleMultipleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const newMediaItems: MediaItem[] = [];
+    let processedCount = 0;
+
+    Array.from(files).forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setMediaUrl(reader.result as string);
-        setMediaType(file.type.startsWith("video") ? "video" : "image");
+        newMediaItems.push({
+          url: reader.result as string,
+          type: file.type.startsWith("video") ? "video" : "image",
+        });
+        processedCount++;
+
+        if (processedCount === files.length) {
+          setMediaList((prev) => [...prev, ...newMediaItems]);
+        }
       };
       reader.readAsDataURL(file);
-    }
+    });
+
+    e.target.value = ""; // Input-ийг дахин сонгоход бэлэн болгох
+  };
+
+  // Сонгосон файлыг жагсаалтаас хасах
+  const removeMediaItem = (index: number) => {
+    setMediaList((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleAddObservation = (e: React.FormEvent) => {
@@ -82,8 +112,7 @@ export default function ObservationsPage() {
       child: selectedFormChild || childrenList[0],
       date: obsDate || new Date().toISOString().split("T")[0],
       note,
-      mediaUrl: mediaUrl || undefined,
-      mediaType,
+      mediaList: mediaList.length > 0 ? mediaList : undefined,
     };
 
     const updated = [newObs, ...observations];
@@ -91,7 +120,7 @@ export default function ObservationsPage() {
     localStorage.setItem("app_observations", JSON.stringify(updated));
 
     setNote("");
-    setMediaUrl("");
+    setMediaList([]);
   };
 
   const handleDeleteObs = (id: number) => {
@@ -115,7 +144,7 @@ export default function ObservationsPage() {
             Ажиглалтын тэмдэглэл 👁️
           </h1>
           <p className="text-xs text-gray-400 mt-1">
-            Ажиглалт хийсэн огноогоо өөрөө сонгон оруулах боломжтой
+            Нэг хүүхдэд олон зураг болон бичлэг зэрэг хавсаргаж хадгалах
           </p>
         </div>
 
@@ -157,7 +186,6 @@ export default function ObservationsPage() {
               </select>
             </div>
 
-            {/* Огноо сонгох хэсэг */}
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Ажиглалт хийсэн огноо:</label>
               <input
@@ -181,21 +209,39 @@ export default function ObservationsPage() {
               />
             </div>
 
+            {/* Зураг болон Бичлэг олноор сонгох */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Зураг / Бичлэг хавсаргах:</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Зураг / Бичлэг хавсаргах (Олноор сонгож болно):
+              </label>
               <input
                 type="file"
+                multiple
                 accept="image/*,video/*"
                 onChange={handleMediaUpload}
                 className="w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-pink-50 file:text-pink-600 hover:file:bg-pink-100 cursor-pointer"
               />
-              {mediaUrl && (
-                <div className="mt-2 relative rounded-lg overflow-hidden border border-gray-200 max-h-32 flex items-center justify-center bg-black/5">
-                  {mediaType === "image" ? (
-                    <img src={mediaUrl} alt="Preview" className="h-28 object-cover rounded" />
-                  ) : (
-                    <video src={mediaUrl} controls className="h-28 rounded" />
-                  )}
+
+              {/* Сонгосон файлуудыг урьдчилан харах grid */}
+              {mediaList.length > 0 && (
+                <div className="mt-3 grid grid-cols-3 gap-2 border border-gray-100 p-2 rounded-xl bg-gray-50 max-h-48 overflow-y-auto">
+                  {mediaList.map((item, index) => (
+                    <div key={index} className="relative group rounded-lg overflow-hidden border border-gray-200 aspect-square bg-black/10">
+                      {item.type === "image" ? (
+                        <img src={item.url} alt={`preview-${index}`} className="w-full h-full object-cover" />
+                      ) : (
+                        <video src={item.url} className="w-full h-full object-cover" />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeMediaItem(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 transition"
+                        title="Устгах"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -238,24 +284,23 @@ export default function ObservationsPage() {
 
                   <p className="text-xs text-gray-700 leading-relaxed">{obs.note}</p>
 
-                  {obs.mediaUrl && (
+                  {/* Олон медиа харуулах галерей */}
+                  {obs.mediaList && obs.mediaList.length > 0 && (
                     <div className="pt-2">
                       <p className="text-[11px] font-semibold text-gray-500 mb-1.5 flex items-center gap-1">
-                        {obs.mediaType === "image" ? <ImageIcon size={14} /> : <Video size={14} />} Хавсаргасан медиа:
+                        <ImageIcon size={14} /> Хавсаргасан медиа сан ({obs.mediaList.length}):
                       </p>
-                      {obs.mediaType === "image" ? (
-                        <img
-                          src={obs.mediaUrl}
-                          alt="Media"
-                          className="w-full max-h-64 object-cover rounded-xl border border-gray-200"
-                        />
-                      ) : (
-                        <video
-                          src={obs.mediaUrl}
-                          controls
-                          className="w-full max-h-64 rounded-xl border border-gray-200"
-                        />
-                      )}
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {obs.mediaList.map((m, idx) => (
+                          <div key={idx} className="rounded-xl overflow-hidden border border-gray-200 aspect-video bg-black/5">
+                            {m.type === "image" ? (
+                              <img src={m.url} alt={`obs-media-${idx}`} className="w-full h-full object-cover" />
+                            ) : (
+                              <video src={m.url} controls className="w-full h-full object-cover" />
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
