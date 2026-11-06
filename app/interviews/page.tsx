@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Plus, Calendar, Image as ImageIcon, Video, Trash2, X } from "lucide-react";
+import { Plus, Calendar, Image as ImageIcon, Video, Trash2, X, Maximize2 } from "lucide-react";
 
 interface MediaItem {
   url: string;
@@ -20,6 +20,7 @@ interface Interview {
 export default function InterviewsPage() {
   const [childrenList, setChildrenList] = useState<string[]>([]);
   const [interviews, setInterviews] = useState<Interview[]>([]);
+  const [activeMedia, setActiveMedia] = useState<MediaItem | null>(null);
 
   const loadChildren = () => {
     const saved = localStorage.getItem("app_children");
@@ -72,7 +73,6 @@ export default function InterviewsPage() {
     }
   }, [childrenList]);
 
-  // Зургийн хэмжээг шахаж тохируулах функц
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -176,14 +176,14 @@ export default function InterviewsPage() {
       : interviews.filter((item) => item.child === selectedFilterChild);
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6 max-w-5xl relative">
       <div className="flex justify-between items-center flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             Ярилцлагын бүртгэл 💬
           </h1>
           <p className="text-xs text-gray-400 mt-1">
-            Олон зураг, бичлэгийг хэмжээг нь автоматаар тааруулан хадгална
+            Зураг болон бичлэг дээр дарж бүтэн дэлгэцээр томруулан үзэх боломжтой
           </p>
         </div>
 
@@ -338,16 +338,23 @@ export default function InterviewsPage() {
                   {item.mediaList && item.mediaList.length > 0 && (
                     <div className="pt-2">
                       <p className="text-[11px] font-semibold text-gray-500 mb-1.5 flex items-center gap-1">
-                        <ImageIcon size={14} /> Хавсаргасан медиа ({item.mediaList.length}):
+                        <ImageIcon size={14} /> Хавсаргасан медиа ({item.mediaList.length}) - Дарж бүтэн үзэх:
                       </p>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                         {item.mediaList.map((m, idx) => (
-                          <div key={idx} className="rounded-xl overflow-hidden border border-gray-200 aspect-video bg-gray-100">
+                          <div
+                            key={idx}
+                            onClick={() => setActiveMedia(m)}
+                            className="relative group rounded-xl overflow-hidden border border-gray-200 aspect-video bg-gray-900 cursor-pointer hover:opacity-90 transition"
+                          >
                             {m.type === "image" ? (
                               <img src={m.url} alt={`int-media-${idx}`} className="w-full h-full object-cover" />
                             ) : (
-                              <video src={m.url} controls className="w-full h-full object-cover" />
+                              <video src={m.url} className="w-full h-full object-cover pointer-events-none" />
                             )}
+                            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white gap-1 text-xs font-bold">
+                              <Maximize2 size={16} /> Бүтэн үзэх
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -363,6 +370,38 @@ export default function InterviewsPage() {
           </div>
         </div>
       </div>
+
+      {/* БҮТЭН ДЭЛГЭЦЭЭР ХАРУУЛАХ MODAL LIGHTBOX */}
+      {activeMedia && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+          onClick={() => setActiveMedia(null)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh] w-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setActiveMedia(null)}
+              className="absolute -top-10 right-0 text-white bg-white/20 hover:bg-white/40 p-2 rounded-full transition cursor-pointer"
+            >
+              <X size={20} />
+            </button>
+
+            {activeMedia.type === "image" ? (
+              <img
+                src={activeMedia.url}
+                alt="Full preview"
+                className="max-h-[85vh] max-w-full object-contain rounded-2xl shadow-2xl"
+              />
+            ) : (
+              <video
+                src={activeMedia.url}
+                controls
+                autoPlay
+                className="max-h-[85vh] max-w-full rounded-2xl shadow-2xl"
+              />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
