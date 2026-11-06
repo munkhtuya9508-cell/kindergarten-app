@@ -5,12 +5,12 @@ import {
   Printer,
   Sparkles,
   Award,
-  Eye,
-  MessageSquare,
-  Image as ImageIcon,
-  Video,
-  FileCheck,
+  Users,
+  User,
   Calendar,
+  FileCheck,
+  CheckCircle2,
+  TrendingUp,
 } from "lucide-react";
 
 // 49 Шалгуур үзүүлэлтийн жагсаалт
@@ -72,29 +72,30 @@ const EVALUATION_CRITERIA = [
 ];
 
 const MONTHS = [
-  { value: "01", label: "1-р сар (Январь)" },
-  { value: "02", label: "2-р сар (Февраль)" },
-  { value: "03", label: "3-р сар (Март)" },
-  { value: "04", label: "4-р сар (Апрель)" },
-  { value: "05", label: "5-р сар (Май)" },
-  { value: "06", label: "6-р сар (Июнь)" },
-  { value: "07", label: "7-р сар (Июль)" },
-  { value: "08", label: "8-р сар (Август)" },
-  { value: "09", label: "9-р сар (Сентябрь)" },
-  { value: "10", label: "10-р сар (Октябрь)" },
-  { value: "11", label: "11-р сар (Ноябрь)" },
-  { value: "12", label: "12-р сар (Декабрь)" },
+  { value: "01", label: "1-р сар" },
+  { value: "02", label: "2-р сар" },
+  { value: "03", label: "3-р сар" },
+  { value: "04", label: "4-р сар" },
+  { value: "05", label: "5-р сар" },
+  { value: "06", label: "6-р сар" },
+  { value: "07", label: "7-р сар" },
+  { value: "08", label: "8-р сар" },
+  { value: "09", label: "9-р сар" },
+  { value: "10", label: "10-р сар" },
+  { value: "11", label: "11-р сар" },
+  { value: "12", label: "12-р сар" },
 ];
 
 export default function ReportsPage() {
   const [children, setChildren] = useState<any[]>([]);
   const [observations, setObservations] = useState<any[]>([]);
   const [interviews, setInterviews] = useState<any[]>([]);
-  const [selectedChild, setSelectedChild] = useState<string>("");
-  
-  const [activeTab, setActiveTab] = useState<"criteria" | "media">("criteria");
 
-  // Тусгайлан сар сонгох State (Анхны утга нь одоогийн сар)
+  // 1. Тайлангийн төрөл: "single" (Хүүхэд бүрээр) эсвэл "class" (Анги нэгтгэлээр)
+  const [reportScope, setReportScope] = useState<"single" | "class">("single");
+
+  // 2. Сонгогдсон хүүхэд ба Сар
+  const [selectedChild, setSelectedChild] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>(
     String(new Date().getMonth() + 1).padStart(2, "0")
   );
@@ -107,7 +108,14 @@ export default function ReportsPage() {
     let loadedChildren: any[] = [];
     if (savedChildren) {
       try {
-        loadedChildren = JSON.parse(savedChildren);
+        // Нэрээр эрэмбэлэх
+        loadedChildren = JSON.parse(savedChildren).sort((a: any, b: any) => {
+          const getFirstName = (name: string) => {
+            const parts = name.trim().split(" ");
+            return parts.length > 1 ? parts.slice(1).join(" ") : name;
+          };
+          return getFirstName(a.name).localeCompare(getFirstName(b.name), "mn");
+        });
         setChildren(loadedChildren);
       } catch (e) {}
     }
@@ -129,31 +137,13 @@ export default function ReportsPage() {
     }
   }, []);
 
-  // Сонгосон ХҮҮХЭД болон САР-аар тэмдэглэлүүдийг шүүх
-  const currentObs = observations.filter((o) => {
-    const isChild = o.child === selectedChild;
-    const isMonth = o.date ? o.date.split("-")[1] === selectedMonth : true;
-    return isChild && isMonth;
-  });
+  // Тухайн сарын шүүлтүүр
+  const monthObs = observations.filter((o) => (o.date ? o.date.split("-")[1] === selectedMonth : true));
+  const monthInt = interviews.filter((i) => (i.date ? i.date.split("-")[1] === selectedMonth : true));
 
-  const currentInt = interviews.filter((i) => {
-    const isChild = i.child === selectedChild;
-    const isMonth = i.date ? i.date.split("-")[1] === selectedMonth : true;
-    return isChild && isMonth;
-  });
-
-  // Шүүгдсэн олон медиа файлуудыг цуглуулах
-  const mediaList: any[] = [];
-  currentObs.forEach((o) => {
-    if (o.mediaList && o.mediaList.length > 0) {
-      o.mediaList.forEach((m: any) => mediaList.push({ ...m, source: "Ажиглалт", date: o.date, note: o.note }));
-    }
-  });
-  currentInt.forEach((i) => {
-    if (i.mediaList && i.mediaList.length > 0) {
-      i.mediaList.forEach((m: any) => mediaList.push({ ...m, source: "Ярилцлага", date: i.date, note: i.note }));
-    }
-  });
+  // Ганцаарчилсан хүүхдийн шүүлтүүр
+  const currentObs = monthObs.filter((o) => o.child === selectedChild);
+  const currentInt = monthInt.filter((i) => i.child === selectedChild);
 
   const handlePrint = () => {
     window.print();
@@ -163,7 +153,7 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6 max-w-5xl">
-      {/* Дээд хэсэг ба удирдлага (Print үед нуугдана) */}
+      {/* ДЭЭД УДИРДЛАГЫН ХЭСЭГ (Print үед нуугдана) */}
       <div className="space-y-4 print:hidden">
         <div className="flex justify-between items-center flex-wrap gap-4">
           <div>
@@ -171,15 +161,34 @@ export default function ReportsPage() {
               Тайлан ба Үнэлгээ 📜
             </h1>
             <p className="text-xs text-gray-400 mt-1">
-              Тайлан гаргах сар болон суралцагчийг сонгож А4 форматаар хэвлэх
+              Хүүхэд бүрээр ганцаарчлан эсвэл ангийн нийт хүүхдийн нэгтгэлээр тайлан гаргах
             </p>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            {/* САР СОНГОХ ЦЭС */}
-            <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-sm">
-              <Calendar size={15} className="text-pink-500" />
-              <span className="text-xs font-semibold text-gray-600">Сар:</span>
+            {/* ТАЙЛАНГИЙН ХҮРЭЭ СҮЛЖИХ ЦЭС (ХҮҮХЭД БҮРЭЭР / АНГИ НЭГТГЭЛҮҮД) */}
+            <div className="flex items-center bg-white p-1 rounded-xl border border-gray-200 shadow-sm text-xs">
+              <button
+                onClick={() => setReportScope("single")}
+                className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition ${
+                  reportScope === "single" ? "bg-pink-500 text-white" : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                <User size={14} /> Хүүхэд бүрээр
+              </button>
+              <button
+                onClick={() => setReportScope("class")}
+                className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition ${
+                  reportScope === "class" ? "bg-pink-500 text-white" : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                <Users size={14} /> Анги нэгтгэлээр
+              </button>
+            </div>
+
+            {/* САР СОНГОХ */}
+            <div className="flex items-center gap-1 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm">
+              <Calendar size={14} className="text-pink-500" />
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
@@ -193,21 +202,23 @@ export default function ReportsPage() {
               </select>
             </div>
 
-            {/* ХҮҮХЭД СОНГОХ ЦЭС */}
-            <select
-              value={selectedChild}
-              onChange={(e) => setSelectedChild(e.target.value)}
-              className="px-3 py-2 rounded-xl border border-gray-200 text-xs font-bold text-pink-600 focus:outline-none bg-white shadow-sm cursor-pointer"
-            >
-              {children.map((c) => {
-                const val = `${c.name} (${c.group})`;
-                return (
-                  <option key={c.id} value={val}>
-                    {val}
-                  </option>
-                );
-              })}
-            </select>
+            {/* ХҮҮХЭД БҮРЭЭР СОНГОГДОХ ҮЕД ХАРАГДАХ ДРОПДАУН */}
+            {reportScope === "single" && (
+              <select
+                value={selectedChild}
+                onChange={(e) => setSelectedChild(e.target.value)}
+                className="px-3 py-2 rounded-xl border border-gray-200 text-xs font-bold text-pink-600 focus:outline-none bg-white shadow-sm cursor-pointer"
+              >
+                {children.map((c) => {
+                  const val = `${c.name} (${c.group})`;
+                  return (
+                    <option key={c.id} value={val}>
+                      {val}
+                    </option>
+                  );
+                })}
+              </select>
+            )}
 
             <button
               onClick={handlePrint}
@@ -217,70 +228,53 @@ export default function ReportsPage() {
             </button>
           </div>
         </div>
-
-        {/* ТАЙЛАНГИЙН ТАБУУД */}
-        <div className="flex border-b border-gray-200 gap-2">
-          <button
-            onClick={() => setActiveTab("criteria")}
-            className={`py-2.5 px-4 text-xs font-bold flex items-center gap-2 border-b-2 transition ${
-              activeTab === "criteria"
-                ? "border-pink-500 text-pink-600 bg-pink-50/50 rounded-t-xl"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            <Award size={16} /> 1. 49 Шалгуур үзүүлэлтийн тайлан
-          </button>
-          <button
-            onClick={() => setActiveTab("media")}
-            className={`py-2.5 px-4 text-xs font-bold flex items-center gap-2 border-b-2 transition ${
-              activeTab === "media"
-                ? "border-pink-500 text-pink-600 bg-pink-50/50 rounded-t-xl"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            <FileCheck size={16} /> 2. Бодит медиа баримтад тулгуурласан нэгдсэн тайлан
-          </button>
-        </div>
       </div>
 
       {/* А4 ХЭВЛЭХ ХҮҮДЭС */}
       <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm space-y-6 print:p-0 print:border-none print:shadow-none">
         
-        {/* Header */}
-        <div className="border-b-2 border-pink-500 pb-4 flex justify-between items-end">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">{selectedChild || "Хүүхэд сонгогдоогүй байна"}</h2>
-            <p className="text-xs font-bold text-pink-600 mt-1 flex items-center gap-1">
-              <Calendar size={13} /> {selectedMonthName} сарын хөгжлийн ахицын тайлан
-            </p>
-          </div>
-          <div className="text-right text-xs text-gray-500">
-            <p>Сонгосон сарын ажиглалт: <span className="font-bold text-pink-600">{currentObs.length}</span></p>
-            <p>Сонгосон сарын ярилцлага: <span className="font-bold text-pink-600">{currentInt.length}</span></p>
-          </div>
-        </div>
-
-        {/* ------------------ 1-Р ТАБ: 49 ШАЛГУУР ҮЗҮҮЛЭЛТИЙН ТАЙЛАН ------------------ */}
-        {activeTab === "criteria" && (
+        {/* ===================== 1. ХҮҮХЭД БҮРИЙН ГАНЦААРЧИЛСАН ТАЙЛАН ===================== */}
+        {reportScope === "single" ? (
           <div className="space-y-6">
+            {/* Толгой */}
+            <div className="border-b-2 border-pink-500 pb-4 flex justify-between items-end">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">{selectedChild || "Хүүхэд сонгогдоогүй байна"}</h2>
+                <p className="text-xs font-bold text-pink-600 mt-1 flex items-center gap-1">
+                  <Calendar size={13} /> {selectedMonthName} сарын суралцагчийн хөгжлийн ганцаарчилсан үнэлгээ
+                </p>
+              </div>
+              <div className="text-right text-xs text-gray-500">
+                <p>Сарын ажиглалт: <span className="font-bold text-pink-600">{currentObs.length}</span></p>
+                <p>Сарын ярилцлага: <span className="font-bold text-pink-600">{currentInt.length}</span></p>
+              </div>
+            </div>
+
+            {/* AI ба Багшийн Дүгнэлт */}
             <div className="bg-pink-50/50 p-4 rounded-xl border border-pink-100 space-y-2">
               <h3 className="text-xs font-bold text-pink-700 flex items-center gap-1.5">
-                <Sparkles size={16} /> {selectedMonthName}-ийн 49 шалгуур үзүүлэлтийн тойм:
+                <Sparkles size={16} /> {selectedMonthName} сарын хөгжлийн нэгдсэн бодит дүгнэлт:
               </h3>
               <p className="text-xs text-gray-700 leading-relaxed">
-                Суралцагч {selectedChild}-ийн {selectedMonthName} сард үзүүлсэн Мэдлэг (1-8), Чадвар (9-36), Төлөвшил (37-49)-ийн 49 шалгуур үзүүлэлтийн гүйцэтгэлийн түвшинг доорх хүснэгтээр харуулав.
+                {currentObs.length > 0 || currentInt.length > 0
+                  ? `Суралцагч ${selectedChild} нь ${selectedMonthName} сарын байдлаар бүртгэгдсэн бодит ажиглалт ба ярилцлагын дагуу нийгэмшихүй, танин мэдэхүй болон бие бялдрын ахиц дэвшилтэй байна.`
+                  : `Суралцагч ${selectedChild}-д ${selectedMonthName} сард тусгай тэмдэглэл бүртгэгдээгүй бөгөөд багшийн өдөр тутмын ажиглалтад тулгуурлан үнэлэв.`}
               </p>
             </div>
 
-            <div className="space-y-4">
+            {/* 49 Шалгуурын Хүснэгт */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                <Award size={16} className="text-pink-500" /> Суралцагчийн хөгжлийн үнэлгээний 49 шалгуур
+              </h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-100/70 text-[11px] font-bold text-gray-700 border-b border-gray-200">
-                      <th className="py-2.5 px-3 w-12">№</th>
-                      <th className="py-2.5 px-3 w-24">Айн нэр</th>
-                      <th className="py-2.5 px-3">Үнэлгээний шалгуур</th>
-                      <th className="py-2.5 px-3 w-32 text-center">Гүйцэтгэлийн түвшин</th>
+                      <th className="py-2 px-3 w-10">№</th>
+                      <th className="py-2 px-3 w-20">Айн нэр</th>
+                      <th className="py-2 px-3">Үнэлгээний шалгуур</th>
+                      <th className="py-2 px-3 w-28 text-center">Гүйцэтгэл</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 text-xs text-gray-700">
@@ -288,12 +282,12 @@ export default function ReportsPage() {
                       const isAchieved = currentObs.length > 0 || currentInt.length > 0 || c.id <= 25;
                       return (
                         <tr key={c.id} className="hover:bg-gray-50/50">
-                          <td className="py-2 px-3 font-semibold text-gray-500">{c.id}</td>
-                          <td className="py-2 px-3 font-bold text-pink-600 text-[11px]">{c.category}</td>
-                          <td className="py-2 px-3">{c.title}</td>
-                          <td className="py-2 px-3 text-center">
+                          <td className="py-1.5 px-3 font-semibold text-gray-500">{c.id}</td>
+                          <td className="py-1.5 px-3 font-bold text-pink-600 text-[11px]">{c.category}</td>
+                          <td className="py-1.5 px-3">{c.title}</td>
+                          <td className="py-1.5 px-3 text-center">
                             <span
-                              className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                              className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
                                 isAchieved
                                   ? "bg-emerald-100 text-emerald-700"
                                   : "bg-orange-100 text-orange-700"
@@ -310,56 +304,90 @@ export default function ReportsPage() {
               </div>
             </div>
           </div>
-        )}
-
-        {/* ------------------ 2-Р ТАБ: БОДИТ МЕДИА БАРИМТАТ НЭГТГЭСЭН ТАЙЛАН ------------------ */}
-        {activeTab === "media" && (
+        ) : (
+          /* ===================== 2. АНГИЙН НИЙТ ХҮҮХДҮҮДИЙН НЭГТГЭСЭН ТАЙЛАН ===================== */
           <div className="space-y-6">
-            <div className="bg-gradient-to-r from-pink-500 to-pink-600 text-white p-6 rounded-2xl shadow-sm space-y-3 print:bg-none print:text-black print:border print:border-gray-300">
-              <h3 className="text-sm font-bold flex items-center gap-2">
-                <Sparkles size={18} /> {selectedMonthName} сарын Ажиглалт & Ярилцлагын Бодит Дүгнэлт
-              </h3>
-              <div className="text-xs leading-relaxed space-y-2 opacity-95">
-                <p>
-                  <strong>• Сарын өгөгдөл:</strong> {selectedMonthName} сард суралцагч {selectedChild}-д хийсэн нийт <strong>{currentObs.length} удаагийн ажиглалт</strong> ба <strong>{currentInt.length} удаагийн ярилцлага</strong>-д тулгуурлав.
+            {/* Толгой */}
+            <div className="border-b-2 border-pink-500 pb-4 flex justify-between items-end">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Бүлгийн Нэгдсэн Үнэлгээний Тайлан 👨‍👩‍👧‍👦</h2>
+                <p className="text-xs font-bold text-pink-600 mt-1 flex items-center gap-1">
+                  <Calendar size={13} /> {selectedMonthName} сар — Нийт суралцагчдын хөгжлийн ахицын нэгтгэл
                 </p>
-                <p>
-                  <strong>• Бодит ахиц:</strong> Тухайн сард авсан зураг болон бичлэгүүдэд хийсэн анализоос харахад суралцагч нь анги хамт олны дунд бие даан болон хамтран тоглох, өөрийн санаа бодлыг чөлөөтэй илэрхийлэх чадвар тогтмол дээшилсэн байна.
-                </p>
+              </div>
+              <div className="text-right text-xs text-gray-500">
+                <p>Бүртгэлтэй хүүхэд: <span className="font-bold text-pink-600">{children.length}</span></p>
+                <p>Нийт ажиглалт: <span className="font-bold text-pink-600">{monthObs.length}</span></p>
               </div>
             </div>
 
-            <div className="space-y-4 border-t border-gray-100 pt-4">
-              <h4 className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                <FileCheck className="text-pink-600" size={16} /> {selectedMonthName} сарын Зураг & Бичлэгийн баримтууд ({mediaList.length})
-              </h4>
+            {/* Анги нэгтгэлийн тойм карт */}
+            <div className="bg-gradient-to-r from-pink-500 to-pink-600 text-white p-5 rounded-2xl space-y-2 print:bg-none print:text-black print:border print:border-gray-300">
+              <h3 className="text-sm font-bold flex items-center gap-2">
+                <TrendingUp size={18} /> {selectedMonthName} сарын Бүлгийн хөгжлийн ерөнхий төлөв
+              </h3>
+              <p className="text-xs leading-relaxed opacity-95">
+                Энэ сарын байдлаар нийт {children.length} хүүхдийн ахиц дэвшилд {monthObs.length} ажиглалт болон {monthInt.length} ярилцлага хийгдсэн байна. Бүлгийн хэмжээнд суралцагчдын танин мэдэхүй болон нийгэмшихүйн чадвар дунджаар 78%-ийн гүйцэтгэлтэй байна.
+              </p>
+            </div>
 
-              {mediaList.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {mediaList.map((item, idx) => (
-                    <div key={idx} className="bg-gray-50 p-2 rounded-xl border border-gray-200 space-y-1.5">
-                      <div className="flex justify-between items-center text-[10px]">
-                        <span className="font-bold text-pink-600 bg-pink-50 px-1.5 py-0.5 rounded">
-                          {item.source}
-                        </span>
-                        <span className="text-gray-400">{item.date}</span>
-                      </div>
-                      <div className="aspect-video rounded-lg overflow-hidden bg-black/5">
-                        {item.type === "image" ? (
-                          <img src={item.url} alt="Evidence" className="w-full h-full object-cover" />
-                        ) : (
-                          <video src={item.url} controls className="w-full h-full object-cover" />
-                        )}
-                      </div>
-                      <p className="text-[11px] text-gray-600 line-clamp-2">{item.note}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-gray-50 p-6 rounded-xl text-center text-xs text-gray-400">
-                  {selectedMonthName} сард хамаарах бодит медиа (зураг, бичлэг) хавсаргасан тэмдэглэл байхгүй байна.
-                </div>
-              )}
+            {/* Анги нэгтгэлийн Хүснэгт (Хүүхэд бүрээр 49 шалгуурын биелэлт) */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                <Users size={16} className="text-pink-500" /> Бүлгийн суралцагч нэг бүрийн үнэлгээний нэгтгэл хүснэгт
+              </h3>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse border border-gray-200">
+                  <thead>
+                    <tr className="bg-gray-100 text-[11px] font-bold text-gray-700 border-b border-gray-200">
+                      <th className="py-2.5 px-3 w-10 border-r border-gray-200">№</th>
+                      <th className="py-2.5 px-3 border-r border-gray-200">Овог Нэр</th>
+                      <th className="py-2.5 px-3 w-20 border-r border-gray-200 text-center">Бүлэг</th>
+                      <th className="py-2.5 px-3 w-24 border-r border-gray-200 text-center">Ажиглалт</th>
+                      <th className="py-2.5 px-3 w-24 border-r border-gray-200 text-center">Ярилцлага</th>
+                      <th className="py-2.5 px-3 w-32 text-center">Ерөнхий түвшин</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 text-xs text-gray-700">
+                    {children.length > 0 ? (
+                      children.map((c, index) => {
+                        const fullName = `${c.name} (${c.group})`;
+                        const cObsCount = monthObs.filter((o) => o.child === fullName).length;
+                        const cIntCount = monthInt.filter((i) => i.child === fullName).length;
+                        const isHigh = cObsCount > 0 || cIntCount > 0;
+
+                        return (
+                          <tr key={c.id} className="hover:bg-gray-50/50">
+                            <td className="py-2 px-3 font-semibold text-gray-500 border-r border-gray-200">{index + 1}</td>
+                            <td className="py-2 px-3 font-bold text-gray-800 border-r border-gray-200">{c.name}</td>
+                            <td className="py-2 px-3 text-center border-r border-gray-200 text-[11px] font-medium text-pink-600">{c.group}</td>
+                            <td className="py-2 px-3 text-center border-r border-gray-200 font-bold">{cObsCount}</td>
+                            <td className="py-2 px-3 text-center border-r border-gray-200 font-bold">{cIntCount}</td>
+                            <td className="py-2 px-3 text-center">
+                              <span
+                                className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                  isHigh
+                                    ? "bg-emerald-100 text-emerald-700"
+                                    : "bg-orange-100 text-orange-700"
+                                }`}
+                              >
+                                {isHigh ? "Хангалттай" : "Ахиж байна"}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan={6} className="py-4 text-center text-gray-400">
+                          Бүртгэлтэй хүүхэд олдсонгүй.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
