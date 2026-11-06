@@ -12,9 +12,9 @@ interface Child {
 }
 
 const DEFAULT_CHILDREN: Child[] = [
-  { id: 1, name: "А. Болд", group: "Бэлтгэл Б", gender: "Эр", birthDate: "2021-05-12" },
-  { id: 2, name: "Б. Болор", group: "Бэлтгэл Б", gender: "Эм", birthDate: "2021-08-20" },
-  { id: 3, name: "Д. Бат", group: "Бэлтгэл Б", gender: "Эр", birthDate: "2021-02-15" },
+  { id: 1, name: "Д. Бат", group: "Бэлтгэл Б", gender: "Эр", birthDate: "2021-02-15" },
+  { id: 2, name: "А. Болд", group: "Бэлтгэл Б", gender: "Эр", birthDate: "2021-05-12" },
+  { id: 3, name: "Б. Болор", group: "Бэлтгэл Б", gender: "Эм", birthDate: "2021-08-20" },
 ];
 
 export default function ChildrenPage() {
@@ -31,9 +31,20 @@ export default function ChildrenPage() {
   const [editGender, setEditGender] = useState("");
   const [editBirthDate, setEditBirthDate] = useState("");
 
-  // Нэрсээр цагаан толгойн дагуу эрэмбэлэх функц (localeCompare mn)
-  const sortChildrenByName = (list: Child[]) => {
-    return [...list].sort((a, b) => a.name.localeCompare(b.name, "mn"));
+  // Зөвхөн НЭРНИЙ үсгээр эрэмбэлэх функц (Овгийн үсгийг алгасаж харьцуулна)
+  const sortChildrenByFirstName = (list: Child[]) => {
+    return [...list].sort((a, b) => {
+      // "А. Болд" гэсэн нэрнээс овгийг заглаж, зөвхөн "Болд" хэсгийг авна
+      const getActualName = (fullName: string) => {
+        const parts = fullName.trim().split(" ");
+        return parts.length > 1 ? parts.slice(1).join(" ") : fullName;
+      };
+
+      const nameA = getActualName(a.name);
+      const nameB = getActualName(b.name);
+
+      return nameA.localeCompare(nameB, "mn");
+    });
   };
 
   useEffect(() => {
@@ -41,20 +52,20 @@ export default function ChildrenPage() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setChildren(sortChildrenByName(parsed));
+        setChildren(sortChildrenByFirstName(parsed));
       } catch (e) {
-        setChildren(sortChildrenByName(DEFAULT_CHILDREN));
+        setChildren(sortChildrenByFirstName(DEFAULT_CHILDREN));
       }
     } else {
-      const sortedDefault = sortChildrenByName(DEFAULT_CHILDREN);
+      const sortedDefault = sortChildrenByFirstName(DEFAULT_CHILDREN);
       setChildren(sortedDefault);
       localStorage.setItem("app_children", JSON.stringify(sortedDefault));
     }
   }, []);
 
   const saveAndBroadcast = (updated: Child[]) => {
-    // Автоматаар нэрсийн дарааллаар эрэмбэлж хадгалах
-    const sorted = sortChildrenByName(updated);
+    // Зөвхөн нэрний дарааллаар эрэмбэлж хадгалах
+    const sorted = sortChildrenByFirstName(updated);
     setChildren(sorted);
     localStorage.setItem("app_children", JSON.stringify(sorted));
     window.dispatchEvent(new Event("storage"));
@@ -129,7 +140,7 @@ export default function ChildrenPage() {
           Хүүхдийн бүртгэл 👶
         </h1>
         <p className="text-xs text-gray-400 mt-1">
-          Хүүхдүүдийн нэрс цагаан толгойн дарааллаар (А-Я) автоматаар эрэмбэлэгдэнэ
+          Хүүхдүүд овгоор биш зөвхөн НЭРНИЙ цагаан толгойн дарааллаар (А-Я) автоматаар эрэмбэлэгдэнэ
         </p>
       </div>
 
@@ -147,7 +158,7 @@ export default function ChildrenPage() {
               </label>
               <input
                 type="text"
-                placeholder="Ж: А. Болд"
+                placeholder="Ж: Д. Бат"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500 bg-white"
@@ -209,7 +220,7 @@ export default function ChildrenPage() {
           </form>
         </div>
 
-        {/* ХҮҮХДҮҮДИЙН ЭРЭМБЭЛЭГДСЭН ЖАГСААЛТ */}
+        {/* НЭРНИЙ ДАРААЛЛААР ЭРЭМБЭЛЭГДСЭН ЖАГСААЛТ */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 md:col-span-2">
           <div className="flex justify-between items-center flex-wrap gap-2 border-b border-gray-100 pb-3">
             <h2 className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
