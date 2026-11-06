@@ -51,6 +51,8 @@ export default function InterviewsPage() {
   const [selectedFilterChild, setSelectedFilterChild] = useState<string>("Бүх хүүхэд");
   const [selectedFormChild, setSelectedFormChild] = useState<string>("");
   const [interviewType, setInterviewType] = useState("Хүүхэдтэй хийсэн ярилцлага");
+  // Өнөөдрийн огноог анхны утга болгож өгнө (засах боломжтой)
+  const [interviewDate, setInterviewDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [note, setNote] = useState("");
   const [mediaUrl, setMediaUrl] = useState<string>("");
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
@@ -81,7 +83,7 @@ export default function InterviewsPage() {
       id: Date.now(),
       child: selectedFormChild || childrenList[0],
       type: interviewType,
-      date: new Date().toISOString().split("T")[0],
+      date: interviewDate || new Date().toISOString().split("T")[0],
       note,
       mediaUrl: mediaUrl || undefined,
       mediaType,
@@ -116,7 +118,7 @@ export default function InterviewsPage() {
             Ярилцлагын бүртгэл 💬
           </h1>
           <p className="text-xs text-gray-400 mt-1">
-            Хүүхдүүд цэсийн бүртгэл энд автоматаар синхрончлогдоно
+            Ярилцлага хийсэн огноогоо сонгон оруулж бүртгэх
           </p>
         </div>
 
@@ -168,6 +170,18 @@ export default function InterviewsPage() {
                 <option value="Хүүхэдтэй хийсэн ярилцлага">Хүүхэдтэй хийсэн ярилцлага</option>
                 <option value="Эцэг эхтэй хийсэн ярилцлага">Эцэг эхтэй хийсэн ярилцлага</option>
               </select>
+            </div>
+
+            {/* Огноо сонгох хэсэг */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Ярилцлага хийсэн огноо:</label>
+              <input
+                type="date"
+                value={interviewDate}
+                onChange={(e) => setInterviewDate(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 focus:outline-none focus:border-pink-500 bg-white"
+                required
+              />
             </div>
 
             <div>

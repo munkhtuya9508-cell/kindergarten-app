@@ -16,7 +16,6 @@ export default function ObservationsPage() {
   const [childrenList, setChildrenList] = useState<string[]>([]);
   const [observations, setObservations] = useState<Observation[]>([]);
 
-  // Хүүхдүүдийн шинэчлэгдсэн жагсаалтыг авах функц
   const loadChildren = () => {
     const saved = localStorage.getItem("app_children");
     if (saved) {
@@ -44,13 +43,14 @@ export default function ObservationsPage() {
       }
     }
 
-    // Хүүхдүүд цэсэнд өөрчлөлт ормогц энд АВТОМАТААР шинэчлэх сонсогч
     window.addEventListener("storage", loadChildren);
     return () => window.removeEventListener("storage", loadChildren);
   }, []);
 
   const [selectedFilterChild, setSelectedFilterChild] = useState<string>("Бүх хүүхэд");
   const [selectedFormChild, setSelectedFormChild] = useState<string>("");
+  // Өнөөдрийн огноог анхны утга болгож өгнө (засах боломжтой)
+  const [obsDate, setObsDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [note, setNote] = useState("");
   const [mediaUrl, setMediaUrl] = useState<string>("");
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
@@ -80,7 +80,7 @@ export default function ObservationsPage() {
     const newObs: Observation = {
       id: Date.now(),
       child: selectedFormChild || childrenList[0],
-      date: new Date().toISOString().split("T")[0],
+      date: obsDate || new Date().toISOString().split("T")[0],
       note,
       mediaUrl: mediaUrl || undefined,
       mediaType,
@@ -115,7 +115,7 @@ export default function ObservationsPage() {
             Ажиглалтын тэмдэглэл 👁️
           </h1>
           <p className="text-xs text-gray-400 mt-1">
-            Хүүхдүүд цэсийн бүртгэл энд автоматаар синхрончлогдоно
+            Ажиглалт хийсэн огноогоо өөрөө сонгон оруулах боломжтой
           </p>
         </div>
 
@@ -155,6 +155,18 @@ export default function ObservationsPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Огноо сонгох хэсэг */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Ажиглалт хийсэн огноо:</label>
+              <input
+                type="date"
+                value={obsDate}
+                onChange={(e) => setObsDate(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 focus:outline-none focus:border-pink-500 bg-white"
+                required
+              />
             </div>
 
             <div>
