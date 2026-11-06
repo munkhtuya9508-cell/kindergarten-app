@@ -25,7 +25,6 @@ export default function ObservationsPage() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Зөвхөн нэрийн цагаан толгойн дарааллаар эрэмбэлэх
         const sorted = parsed.sort((a: any, b: any) => {
           const getFirstName = (name: string) => {
             const parts = name.trim().split(" ");
@@ -71,7 +70,7 @@ export default function ObservationsPage() {
     }
   }, [childrenList]);
 
-  // Олон файл сонгон оруулах функц
+  // Олон файл сонгон оруулах
   const handleMultipleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -95,10 +94,9 @@ export default function ObservationsPage() {
       reader.readAsDataURL(file);
     });
 
-    e.target.value = ""; // Input-ийг дахин сонгоход бэлэн болгох
+    e.target.value = "";
   };
 
-  // Сонгосон файлыг жагсаалтаас хасах
   const removeMediaItem = (index: number) => {
     setMediaList((prev) => prev.filter((_, i) => i !== index));
   };
@@ -144,7 +142,7 @@ export default function ObservationsPage() {
             Ажиглалтын тэмдэглэл 👁️
           </h1>
           <p className="text-xs text-gray-400 mt-1">
-            Нэг хүүхдэд олон зураг болон бичлэг зэрэг хавсаргаж хадгалах
+            Нэг ажиглалтад олон зураг болон бичлэг зэрэг хавсаргаж хадгалах
           </p>
         </div>
 
@@ -209,7 +207,7 @@ export default function ObservationsPage() {
               />
             </div>
 
-            {/* Зураг болон Бичлэг олноор сонгох */}
+            {/* Олон медиа файл оруулах хэсэг */}
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">
                 Зураг / Бичлэг хавсаргах (Олноор сонгож болно):
@@ -218,11 +216,10 @@ export default function ObservationsPage() {
                 type="file"
                 multiple
                 accept="image/*,video/*"
-                onChange={handleMediaUpload}
+                onChange={handleMultipleMediaUpload}
                 className="w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-pink-50 file:text-pink-600 hover:file:bg-pink-100 cursor-pointer"
               />
 
-              {/* Сонгосон файлуудыг урьдчилан харах grid */}
               {mediaList.length > 0 && (
                 <div className="mt-3 grid grid-cols-3 gap-2 border border-gray-100 p-2 rounded-xl bg-gray-50 max-h-48 overflow-y-auto">
                   {mediaList.map((item, index) => (
@@ -284,7 +281,6 @@ export default function ObservationsPage() {
 
                   <p className="text-xs text-gray-700 leading-relaxed">{obs.note}</p>
 
-                  {/* Олон медиа харуулах галерей */}
                   {obs.mediaList && obs.mediaList.length > 0 && (
                     <div className="pt-2">
                       <p className="text-[11px] font-semibold text-gray-500 mb-1.5 flex items-center gap-1">
