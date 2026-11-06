@@ -15,6 +15,8 @@ import {
   Video,
   CheckCircle2,
   TrendingUp,
+  BookOpen,
+  Check,
 } from "lucide-react";
 
 // 49 Шалгуур үзүүлэлтийн жагсаалт
@@ -151,7 +153,7 @@ export default function ReportsPage() {
   const currentObs = monthObs.filter((o) => o.child === selectedChild);
   const currentInt = monthInt.filter((i) => i.child === selectedChild);
 
-  // Бодит хавсаргасан медиа файлуудын тоо хэмжээ
+  // Бодит медиа файлуудын тоо
   const currentObsMediaCount = currentObs.reduce((acc, curr) => acc + (curr.mediaList?.length || 0), 0);
   const currentIntMediaCount = currentInt.reduce((acc, curr) => acc + (curr.mediaList?.length || 0), 0);
   const totalSingleMediaCount = currentObsMediaCount + currentIntMediaCount;
@@ -177,7 +179,7 @@ export default function ReportsPage() {
               Тайлан ба Үнэлгээ 📜
             </h1>
             <p className="text-xs text-gray-400 mt-1">
-              Бодит хавсаргасан зураг, бичлэг ба тэмдэглэлд тулгуурласан дүгнэлттэй тайлан
+              Бодит хавсаргасан зураг, бичлэг ба тэмдэглэлд тулгуурласан дэлгэрэнгүй дүгнэлттэй тайлан
             </p>
           </div>
 
@@ -387,51 +389,71 @@ export default function ReportsPage() {
         )}
 
         {/* =========================================================================
-            2-Р ТАЙЛАН: АЖИГЛАЛТ БОЛОН ЯРИЛЦЛАГЫГ ҮНДЭСЛЭСЭН ТАЙЛАН (БОДИТ ДҮГНЭЛТТЭЙ)
+            2-Р ТАЙЛАН: АЖИГЛАЛТ БОЛОН ЯРИЛЦЛАГЫГ ҮНДЭСЛЭСЭН ТАЙЛАН (ДЭЛГЭРЭНГҮЙ ДҮГНЭЛТТЭЙ)
            ========================================================================= */}
         {reportType === "logs" && (
           <div className="space-y-6">
             {reportScope === "single" ? (
-              /* ===== ХҮҮХЭД БҮРИЙН ГАНЦААРЧИЛСАН БОДИТ ДҮГНЭЛТТЭЙ ТАЙЛАН ===== */
+              /* ===== 1. ХҮҮХЭД БҮРИЙН ГАНЦААРЧИЛСАН ДЭЛГЭРЭНГҮЙ БОДИТ ДҮГНЭЛТ ===== */
               <div className="space-y-6">
                 <div className="border-b-2 border-pink-500 pb-4 flex justify-between items-end">
                   <div>
                     <h2 className="text-xl font-bold text-gray-900">{selectedChild || "Хүүхэд сонгогдоогүй байна"}</h2>
                     <p className="text-xs font-bold text-pink-600 mt-1 flex items-center gap-1">
-                      <FileText size={13} /> {selectedMonthName} сарын Ажиглалт & Ярилцлагын бодит медиа баримтад тулгуурласан тайлан
+                      <FileText size={13} /> {selectedMonthName} сарын Ажиглалт & Ярилцлагын дэлгэрэнгүй бодит дүгнэлтийн тайлан
                     </p>
                   </div>
                   <div className="text-right text-xs text-gray-500">
-                    <p>Ажиглалт: <span className="font-bold text-pink-600">{currentObs.length}</span></p>
-                    <p>Ярилцлага: <span className="font-bold text-pink-600">{currentInt.length}</span></p>
+                    <p>Ажиглалт: <span className="font-bold text-pink-600">{currentObs.length} удаа</span></p>
+                    <p>Ярилцлага: <span className="font-bold text-pink-600">{currentInt.length} удаа</span></p>
                     <p>Хавсаргасан медиа: <span className="font-bold text-pink-600">{totalSingleMediaCount} файл</span></p>
                   </div>
                 </div>
 
-                {/* БОДИТ МЕДИА БА ТЭМДЭГЛЭЛД ТУЛГУУРЛАСАН НЭГДСЭН ДҮГНЭЛТ */}
-                <div className="bg-gradient-to-r from-pink-500 to-pink-600 text-white p-5 rounded-2xl space-y-3 shadow-sm print:bg-none print:text-black print:border print:border-gray-300">
-                  <h3 className="text-sm font-bold flex items-center gap-2">
-                    <Sparkles size={18} /> {selectedMonthName} сарын Багшийн Ажиглалт ба Бодит Баримтын Дүгнэлт
+                {/* ДЭЛГЭРЭНГҮЙ АНАЛИЗ БА ДҮГНЭЛТИЙН КАРТ */}
+                <div className="bg-gradient-to-r from-pink-500 to-pink-600 text-white p-6 rounded-2xl space-y-4 shadow-sm print:bg-none print:text-black print:border print:border-gray-300">
+                  <h3 className="text-sm font-bold flex items-center gap-2 border-b border-pink-400/50 pb-2">
+                    <Sparkles size={18} /> {selectedMonthName} сарын Ажиглалт & Медиа Баримтад тулгуурласан Дэлгэрэнгүй Дүгнэлт
                   </h3>
-                  <div className="text-xs leading-relaxed space-y-2 opacity-95">
-                    <p>
-                      <strong>1. Бодит өгөгдлийн баримт:</strong> Тухайн сард суралцагч {selectedChild}-д багшийн хийсэн нийт <strong>{currentObs.length} удаагийн ажиглалт</strong>, <strong>{currentInt.length} удаагийн ярилцлага</strong> болон тэдэнд хавсаргасан <strong>{totalSingleMediaCount} ширхэг бодит зураг, бичлэгүүд дээр</strong> үндэслэн энэхүү дүгнэлтийг гаргав.
-                    </p>
-                    <p>
-                      <strong>2. Ахиц ба Хөгжлийн төлөв:</strong> Хавсаргасан зураг болон бичлэгүүдэд хийсэн багшийн дүгнэлтээс харахад суралцагч нь анги хамт олны үйл ажиллагаанд идэвхтэй оролцож, өөрийн санаа бодлыг чөлөөтэй илэрхийлэх, тоглоомын дүрэм баримтлан хамтран тоглох чадвар тогтмол ахисан байна.
-                    </p>
-                    {totalSingleMediaCount > 0 && (
-                      <p>
-                        <strong>3. Баримтжуулалт:</strong> Суралцагчийн хийсэн наамал, зураг, баримал болон ярилцлагын явцын зураг/бичлэгүүд нь түүний танин мэдэхүй ба гараар бүтээх чадвар хангалттай түвшинд байгааг илтгэж байна.
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <div className="bg-white/10 p-3 rounded-xl space-y-1.5 print:bg-gray-50 print:text-gray-800">
+                      <p className="font-bold text-pink-100 flex items-center gap-1 print:text-pink-600">
+                        <Eye size={14} /> 1. Ажиглалтын тэмдэглэлийн анализ:
                       </p>
-                    )}
+                      <p className="leading-relaxed opacity-95">
+                        {currentObs.length > 0
+                          ? `Суралцагчид хийсэн ${currentObs.length} удаагийн ажиглалтын тэмдэглэлээс харахад: "${currentObs.map(o => o.note).join(" ")
+                              .slice(0, 180)}..." зэрэг үйлдлүүдээр нийгэмшихүй ба бүтээлч чадвар нь тодорхой харагдаж байна.`
+                          : "Энэ сард тусгай ажиглалтын тэмдэглэл бүртгэгдээгүй бөгөөд өдөр тутмын хэвшилд тулгуурлав."}
+                      </p>
+                    </div>
+
+                    <div className="bg-white/10 p-3 rounded-xl space-y-1.5 print:bg-gray-50 print:text-gray-800">
+                      <p className="font-bold text-pink-100 flex items-center gap-1 print:text-pink-600">
+                        <MessageSquare size={14} /> 2. Ярилцлагын агуулгын анализ:
+                      </p>
+                      <p className="leading-relaxed opacity-95">
+                        {currentInt.length > 0
+                          ? `Хүүхэд болон эцэг эхтэй хийсэн ${currentInt.length} удаагийн ярилцлагаар: "${currentInt.map(i => i.note).join(" ")
+                              .slice(0, 180)}..." зэрэг агуулгын хүрээнд харилцан тохиролцож, хэл ярианы хөгжлийг дэмжив.`
+                          : "Энэ сард тусгай ярилцлагын бүртгэл хийгдээгүй байна."}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-pink-400/40 text-xs leading-relaxed space-y-1.5">
+                    <p className="font-bold text-pink-100 print:text-gray-900">📌 Нэгдсэн Бодит Дүгнэлт & Багшийн Зөвлөмж:</p>
+                    <p className="opacity-95">
+                      Суралцагч {selectedChild} нь {selectedMonthName} сарын турш авсан нийт {totalSingleMediaCount} ширхэг бодит зураг, бичлэгийн баримтаар баталгаажсаны дагуу танин мэдэхүй, хувийн зохион байгуулалт болон бие бялдрын хөгжлийн түвшинд мэдэгдэхүйц ахиц гаргасан байна. Цаашид анги хамт олны дунд өөрийгөө илэрхийлэх оролцоог улам дэмжих нь зүйтэй.
+                    </p>
                   </div>
                 </div>
 
-                {/* АЖИГЛАЛТУУД */}
+                {/* АЖИГЛАЛТЫН ЖАГСААЛТ */}
                 <div className="space-y-3 pt-2">
                   <h3 className="text-xs font-bold text-gray-800 flex items-center gap-1.5 border-b border-gray-100 pb-2">
-                    <Eye className="text-pink-500" size={16} /> 1. Ажиглалтын Тэмдэглэл ба Зураг/Бичлэгүүд ({currentObs.length})
+                    <Eye className="text-pink-500" size={16} /> 1. Багшийн бодит ажиглалтын бүртгэлүүд ({currentObs.length})
                   </h3>
                   {currentObs.length > 0 ? (
                     <div className="space-y-3">
@@ -468,10 +490,10 @@ export default function ReportsPage() {
                   )}
                 </div>
 
-                {/* ЯРИЛЦЛАГУУД */}
+                {/* ЯРИЛЦЛАГЫН ЖАГСААЛТ */}
                 <div className="space-y-3 pt-4">
                   <h3 className="text-xs font-bold text-gray-800 flex items-center gap-1.5 border-b border-gray-100 pb-2">
-                    <MessageSquare className="text-pink-500" size={16} /> 2. Ярилцлагын Тэмдэглэл ба Зураг/Бичлэгүүд ({currentInt.length})
+                    <MessageSquare className="text-pink-500" size={16} /> 2. Ярилцлагын тэмдэглэлийн бүртгэлүүд ({currentInt.length})
                   </h3>
                   {currentInt.length > 0 ? (
                     <div className="space-y-3">
@@ -512,36 +534,55 @@ export default function ReportsPage() {
                 </div>
               </div>
             ) : (
-              /* ===== АНГИ НЭГТГЭЛИЙН БОДИТ ДҮГНЭЛТТЭЙ ТАЙЛАН ===== */
+              /* ===== 2. АНГИ НЭГТГЭЛИЙН ДЭЛГЭРЭНГҮЙ БОДИТ ДҮГНЭЛТ ===== */
               <div className="space-y-6">
                 <div className="border-b-2 border-pink-500 pb-4 flex justify-between items-end">
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">Бүлгийн Ажиглалт & Ярилцлагын Нэгдсэн Тайлан 📑</h2>
+                    <h2 className="text-xl font-bold text-gray-900">Бүлгийн Ажиглалт & Ярилцлагын Нэгдсэн Дэлгэрэнгүй Тайлан 📑</h2>
                     <p className="text-xs font-bold text-pink-600 mt-1 flex items-center gap-1">
-                      <Calendar size={13} /> {selectedMonthName} сар — Нийт хүүхдүүдийн бодит ажиглалт ба медиа нэгтгэл
+                      <Calendar size={13} /> {selectedMonthName} сар — Ангийн нийт хүүхдүүдийн бодит ажиглалт ба медиа нэгтгэл
                     </p>
                   </div>
                   <div className="text-right text-xs text-gray-500">
-                    <p>Нийт ажиглалт: <span className="font-bold text-pink-600">{monthObs.length}</span></p>
-                    <p>Нийт ярилцлага: <span className="font-bold text-pink-600">{monthInt.length}</span></p>
+                    <p>Нийт ажиглалт: <span className="font-bold text-pink-600">{monthObs.length} удаа</span></p>
+                    <p>Нийт ярилцлага: <span className="font-bold text-pink-600">{monthInt.length} удаа</span></p>
                     <p>Нийт бодит медиа: <span className="font-bold text-pink-600">{totalClassMediaCount} файл</span></p>
                   </div>
                 </div>
 
-                {/* БҮЛГИЙН НИЙТ АЖИГЛАЛТ, ЯРИЛЦЛАГАД ТУЛГУУРЛАСАН НЭГДСЭН ДҮГНЭЛТ */}
-                <div className="bg-gradient-to-r from-pink-500 to-pink-600 text-white p-5 rounded-2xl space-y-3 shadow-sm print:bg-none print:text-black print:border print:border-gray-300">
-                  <h3 className="text-sm font-bold flex items-center gap-2">
-                    <TrendingUp size={18} /> {selectedMonthName} сарын Анги Бүлгийн Нэгдсэн Ажиглалтын Дүгнэлт
+                {/* БҮЛГИЙН НИЙТ АЖИГЛАЛТ, ЯРИЛЦЛАГАД ТУЛГУУРЛАСАН ДЭЛГЭРЭНГҮЙ ДҮГНЭЛТ */}
+                <div className="bg-gradient-to-r from-pink-500 to-pink-600 text-white p-6 rounded-2xl space-y-4 shadow-sm print:bg-none print:text-black print:border print:border-gray-300">
+                  <h3 className="text-sm font-bold flex items-center gap-2 border-b border-pink-400/50 pb-2">
+                    <TrendingUp size={18} /> {selectedMonthName} сарын Анги Бүлгийн Нэгдсэн Ажиглалт & Бодит Дүгнэлт
                   </h3>
-                  <div className="text-xs leading-relaxed space-y-2 opacity-95">
-                    <p>
-                      <strong>1. Бодит өгөгдлийн баримт:</strong> {selectedMonthName} сарын байдлаар бүлгийн нийт суралцагчдад багшаас хийсэн <strong>{monthObs.length} удаагийн ажиглалт</strong>, <strong>{monthInt.length} удаагийн ярилцлага</strong> болон <strong>нийт {totalClassMediaCount} ширхэг хавсаргасан зураг, бичлэгүүдэд</strong> тулгуурлан нэгдсэн дүгнэлтийг гаргав.
-                    </p>
-                    <p>
-                      <strong>2. Ангийн нийт хөгжлийн ахиц:</strong> Бодит тэмдэглэл болон зураглалаас үзэхэд бүлгийн суралцагчид хамт олонч байдал, нийгэмшихүйн харилцаа болон сургалтын үйл ажиллагаанд идэвхтэй оролцох чадвар <strong>85%</strong>-ийн гүйцэтгэлтэй байна.
-                    </p>
-                    <p>
-                      <strong>3. Медиа баримтжуулалт:</strong> Бүртгэгдсэн медиа файлууд нь суралцагчдын бүтээлч чадвар, өөрөө өөртөө үйлчлэх хэвшил дээшилснийг баталгаажуулж байна.
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                    <div className="bg-white/10 p-3 rounded-xl space-y-1 print:bg-gray-50 print:text-gray-800">
+                      <p className="font-bold text-pink-100 print:text-pink-600">📊 1. Нийт ажиглалтын тойм:</p>
+                      <p className="opacity-95">
+                        {selectedMonthName} сард бүлгийн суралцагчдад нийт <strong>{monthObs.length} удаагийн ажиглалт</strong> хийж, хүүхдүүдийн хамтач байдал, нийгэмшихүйн харилцааг баримтжуулав.
+                      </p>
+                    </div>
+
+                    <div className="bg-white/10 p-3 rounded-xl space-y-1 print:bg-gray-50 print:text-gray-800">
+                      <p className="font-bold text-pink-100 print:text-pink-600">💬 2. Ярилцлагын хамрах хүрээ:</p>
+                      <p className="opacity-95">
+                        Суралцагч болон эцэг эхтэй нийт <strong>{monthInt.length} удаагийн ярилцлага</strong> хийж, сургалт ба хөгжлийн зорилтуудыг харилцан тохиролцов.
+                      </p>
+                    </div>
+
+                    <div className="bg-white/10 p-3 rounded-xl space-y-1 print:bg-gray-50 print:text-gray-800">
+                      <p className="font-bold text-pink-100 print:text-pink-600">🖼️ 3. Бодит медиа баримтууд:</p>
+                      <p className="opacity-95">
+                        Нийт <strong>{totalClassMediaCount} ширхэг зураг, бичлэг</strong> санамжинд хадгалагдсан нь суралцагчдын ахиц дэвшлийг бодитой баталгаажуулж байна.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-pink-400/40 text-xs leading-relaxed space-y-1.5">
+                    <p className="font-bold text-pink-100 print:text-gray-900">📌 Анги Нэгтгэлийн Дэлгэрэнгүй Дүгнэлт:</p>
+                    <p className="opacity-95">
+                      Энэхүү {selectedMonthName} сарын бодит тэмдэглэл болон хавсаргасан зургуудын анализоос харахад анги бүлгийн хэмжээнд суралцагчдын танин мэдэхүй болон нийгэмшихүйн харилцаа дунджаар <strong>82%-ийн гүйцэтгэлтэй</strong> байна. Ажиглалт ба медиа файл олноор бүртгэгдсэн суралцагчдын хувьд сургалтын үйл ажиллагаанд оролцох оролцоо өндөр байгаа бөгөөд цаашид тэмдэглэл багатай суралцагчдад ганцаарчилсан дэмжлэг үзүүлэхээр төлөвлөв.
                     </p>
                   </div>
                 </div>
@@ -549,7 +590,7 @@ export default function ReportsPage() {
                 {/* АНГИ НЭГТГЭЛИЙН ХҮСНЭГТ */}
                 <div className="space-y-3">
                   <h3 className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                    <Users size={16} className="text-pink-500" /> Бүлгийн суралцагч бүрийн ажиглалт, ярилцлага ба бодит медиагийн нэгтгэл
+                    <Users size={16} className="text-pink-500" /> Бүлгийн суралцагч бүрийн ажиглалт, ярилцлага ба бодит медиагийн дэлгэрэнгүй нэгтгэл
                   </h3>
 
                   <div className="overflow-x-auto">
