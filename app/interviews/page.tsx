@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Plus, Calendar, Image as ImageIcon, Video, Trash2, X, Maximize2 } from "lucide-react";
+import { Plus, Calendar, Image as ImageIcon, Video, Trash2, X, Maximize2, Edit2, Check } from "lucide-react";
 
 interface MediaItem {
   url: string;
@@ -21,6 +21,9 @@ export default function InterviewsPage() {
   const [childrenList, setChildrenList] = useState<string[]>([]);
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [activeMedia, setActiveMedia] = useState<MediaItem | null>(null);
+
+  // Засварлаж байгаа ярилцлагын ID
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   const loadChildren = () => {
     const saved = localStorage.getItem("app_children");
@@ -138,25 +141,61 @@ export default function InterviewsPage() {
     setMediaList((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleAddInterview = (e: React.FormEvent) => {
+  // Ярилцлагыг засварлах горимд шилжүүлэх
+  const startEditInterview = (item: Interview) => {
+    setEditingId(item.id);
+    setSelectedFormChild(item.child);
+    setInterviewType(item.type);
+    setInterviewDate(item.date);
+    setNote(item.note);
+    setMediaList(item.mediaList || []);
+  };
+
+  // Засварыг цуцлах
+  const cancelEditInterview = () => {
+    setEditingId(null);
+    setNote("");
+    setMediaList([]);
+    setInterviewDate(new Date().toISOString().split("T")[0]);
+  };
+
+  // Хадгалах (Шинээр эсвэл засаж хадгалах)
+  const handleSaveInterview = (e: React.FormEvent) => {
     e.preventDefault();
     if (!note.trim()) return;
 
-    const newInterview: Interview = {
-      id: Date.now(),
-      child: selectedFormChild || childrenList[0],
-      type: interviewType,
-      date: interviewDate || new Date().toISOString().split("T")[0],
-      note,
-      mediaList: mediaList.length > 0 ? mediaList : undefined,
-    };
+    let updated: Interview[];
 
-    const updated = [newInterview, ...interviews];
+    if (editingId !== null) {
+      updated = interviews.map((item) => {
+        if (item.id === editingId) {
+          return {
+            ...item,
+            child: selectedFormChild || childrenList[0],
+            type: interviewType,
+            date: interviewDate,
+            note,
+            mediaList: mediaList.length > 0 ? mediaList : undefined,
+          };
+        }
+        return item;
+      });
+    } else {
+      const newInterview: Interview = {
+        id: Date.now(),
+        child: selectedFormChild || childrenList[0],
+        type: interviewType,
+        date: interviewDate || new Date().toISOString().split("T")[0],
+        note,
+        mediaList: mediaList.length > 0 ? mediaList : undefined,
+      };
+      updated = [newInterview, ...interviews];
+    }
+
     try {
       localStorage.setItem("app_interviews", JSON.stringify(updated));
       setInterviews(updated);
-      setNote("");
-      setMediaList([]);
+      cancelEditInterview();
     } catch (error) {
       alert("Санамж дүүрсэн байна! Цөөн эсвэл бага хэмжээтэй зураг хавсаргана уу.");
     }
@@ -167,6 +206,7 @@ export default function InterviewsPage() {
       const updated = interviews.filter((item) => item.id !== id);
       setInterviews(updated);
       localStorage.setItem("app_interviews", JSON.stringify(updated));
+      if (editingId === id) cancelEditInterview();
     }
   };
 
@@ -183,7 +223,7 @@ export default function InterviewsPage() {
             Ярилцлагын бүртгэл 💬
           </h1>
           <p className="text-xs text-gray-400 mt-1">
-            Зураг болон бичлэг дээр дарж бүтэн дэлгэцээр томруулан үзэх боломжтой
+            Ярилцлагын тэмдэглэлүүд болон хавсаргасан медиаг засаж шинэчлэх
           </p>
         </div>
 
@@ -205,11 +245,24 @@ export default function InterviewsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+        {/* ФОРМ (ШИНЭЭР НЭМЭХ ЭСВЭЛ ЗАСВАРЛАХ) */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 md:col-span-1">
-          <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-            <Plus className="text-pink-500" size={18} /> Шинэ ярилцлага нэмэх
-          </h2>
-          <form onSubmit={handleAddInterview} className="space-y-3">
+          <div className="flex justify-between items-center">
+            <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              {editingId ? <Edit2 className="text-pink-500" size={18} /> : <Plus className="text-pink-500" size={18} />}
+              {editingId ? "Ярилцлага засварлах" : "Шинэ ярилцлага нэмэх"}
+            </h2>
+            {editingId && (
+              <button
+                onClick={cancelEditInterview}
+                className="text-xs text-gray-400 hover:text-gray-600 underline"
+              >
+                Цуцлах
+              </button>
+            )}
+          </div>
+
+          <form onSubmit={handleSaveInterview} className="space-y-3">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Хүүхэд сонгох:</label>
               <select
@@ -296,13 +349,17 @@ export default function InterviewsPage() {
 
             <button
               type="submit"
-              className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+              className={`w-full text-white font-medium py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer ${
+                editingId ? "bg-emerald-500 hover:bg-emerald-600" : "bg-pink-500 hover:bg-pink-600"
+              }`}
             >
-              Тэмдэглэл хадгалах
+              {editingId ? <Check size={16} /> : <Plus size={16} />}
+              {editingId ? "Засварыг хадгалах" : "Тэмдэглэл хадгалах"}
             </button>
           </form>
         </div>
 
+        {/* САНГИЙН ДҮРСЛЭЛ */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 md:col-span-2">
           <h2 className="text-sm font-bold text-gray-800 border-b border-gray-100 pb-3 flex justify-between items-center">
             <span>Ярилцлагын сан ({filteredInterviews.length})</span>
@@ -314,7 +371,12 @@ export default function InterviewsPage() {
           <div className="space-y-4">
             {filteredInterviews.length > 0 ? (
               filteredInterviews.map((item) => (
-                <div key={item.id} className="p-4 bg-gray-50/70 rounded-2xl border border-gray-100 space-y-3">
+                <div
+                  key={item.id}
+                  className={`p-4 rounded-2xl border transition space-y-3 ${
+                    editingId === item.id ? "bg-pink-50/40 border-pink-300 ring-2 ring-pink-200" : "bg-gray-50/70 border-gray-100"
+                  }`}
+                >
                   <div className="flex justify-between items-center text-xs">
                     <div>
                       <span className="font-bold text-pink-600 text-sm block">{item.child}</span>
@@ -324,9 +386,18 @@ export default function InterviewsPage() {
                       <span className="text-gray-400 flex items-center gap-1 font-medium">
                         <Calendar size={13} /> {item.date}
                       </span>
+                      {/* Засварлах ба устгах товчлуурууд */}
+                      <button
+                        onClick={() => startEditInterview(item)}
+                        className="text-gray-400 hover:text-pink-600 transition p-1 hover:bg-pink-50 rounded"
+                        title="Засварлах"
+                      >
+                        <Edit2 size={14} />
+                      </button>
                       <button
                         onClick={() => handleDeleteInterview(item.id)}
-                        className="text-gray-400 hover:text-red-500 transition"
+                        className="text-gray-400 hover:text-red-500 transition p-1 hover:bg-red-50 rounded"
+                        title="Устгах"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -371,7 +442,7 @@ export default function InterviewsPage() {
         </div>
       </div>
 
-      {/* БҮТЭН ДЭЛГЭЦЭЭР ХАРУУЛАХ MODAL LIGHTBOX */}
+      {/* MODAL LIGHTBOX */}
       {activeMedia && (
         <div
           className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm"

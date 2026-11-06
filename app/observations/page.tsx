@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Plus, Calendar, Image as ImageIcon, Video, Trash2, X, Maximize2 } from "lucide-react";
+import { Plus, Calendar, Image as ImageIcon, Video, Trash2, X, Maximize2, Edit2, Check } from "lucide-react";
 
 interface MediaItem {
   url: string;
@@ -19,9 +19,10 @@ interface Observation {
 export default function ObservationsPage() {
   const [childrenList, setChildrenList] = useState<string[]>([]);
   const [observations, setObservations] = useState<Observation[]>([]);
-
-  // Томруулж харах (Modal) state
   const [activeMedia, setActiveMedia] = useState<MediaItem | null>(null);
+
+  // Засварлаж байгаа ажиглалтын ID (null бол шинээр нэмэх горим)
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   const loadChildren = () => {
     const saved = localStorage.getItem("app_children");
@@ -138,24 +139,60 @@ export default function ObservationsPage() {
     setMediaList((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleAddObservation = (e: React.FormEvent) => {
+  // Тэмдэглэлийг засварлах горимд шилжүүлэх
+  const startEditObs = (obs: Observation) => {
+    setEditingId(obs.id);
+    setSelectedFormChild(obs.child);
+    setObsDate(obs.date);
+    setNote(obs.note);
+    setMediaList(obs.mediaList || []);
+  };
+
+  // Засварыг цуцлах
+  const cancelEditObs = () => {
+    setEditingId(null);
+    setNote("");
+    setMediaList([]);
+    setObsDate(new Date().toISOString().split("T")[0]);
+  };
+
+  // Хадгалах (Шинээр эсвэл засаж хадгалах)
+  const handleSaveObservation = (e: React.FormEvent) => {
     e.preventDefault();
     if (!note.trim()) return;
 
-    const newObs: Observation = {
-      id: Date.now(),
-      child: selectedFormChild || childrenList[0],
-      date: obsDate || new Date().toISOString().split("T")[0],
-      note,
-      mediaList: mediaList.length > 0 ? mediaList : undefined,
-    };
+    let updated: Observation[];
 
-    const updated = [newObs, ...observations];
+    if (editingId !== null) {
+      // Засварласан ажиглалтыг шинэчлэх
+      updated = observations.map((obs) => {
+        if (obs.id === editingId) {
+          return {
+            ...obs,
+            child: selectedFormChild || childrenList[0],
+            date: obsDate,
+            note,
+            mediaList: mediaList.length > 0 ? mediaList : undefined,
+          };
+        }
+        return obs;
+      });
+    } else {
+      // Шинэ ажиглалт нэмэх
+      const newObs: Observation = {
+        id: Date.now(),
+        child: selectedFormChild || childrenList[0],
+        date: obsDate || new Date().toISOString().split("T")[0],
+        note,
+        mediaList: mediaList.length > 0 ? mediaList : undefined,
+      };
+      updated = [newObs, ...observations];
+    }
+
     try {
       localStorage.setItem("app_observations", JSON.stringify(updated));
       setObservations(updated);
-      setNote("");
-      setMediaList([]);
+      cancelEditObs();
     } catch (error) {
       alert("Санамж дүүрсэн байна! Цөөн эсвэл бага хэмжээтэй зураг хавсаргана уу.");
     }
@@ -166,6 +203,7 @@ export default function ObservationsPage() {
       const updated = observations.filter((item) => item.id !== id);
       setObservations(updated);
       localStorage.setItem("app_observations", JSON.stringify(updated));
+      if (editingId === id) cancelEditObs();
     }
   };
 
@@ -182,7 +220,7 @@ export default function ObservationsPage() {
             Ажиглалтын тэмдэглэл 👁️
           </h1>
           <p className="text-xs text-gray-400 mt-1">
-            Зураг болон бичлэг дээр дарж бүтэн дэлгэцээр томруулан үзэх боломжтой
+            Ажиглалтын тэмдэглэлүүд болон хавсаргасан медиаг засаж шинэчлэх
           </p>
         </div>
 
@@ -204,11 +242,24 @@ export default function ObservationsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+        {/* ФОРМ (ШИНЭЭР НЭМЭХ ЭСВЭЛ ЗАСВАРЛАХ) */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 md:col-span-1">
-          <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-            <Plus className="text-pink-500" size={18} /> Шинэ ажиглалт бичих
-          </h2>
-          <form onSubmit={handleAddObservation} className="space-y-3">
+          <div className="flex justify-between items-center">
+            <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              {editingId ? <Edit2 className="text-pink-500" size={18} /> : <Plus className="text-pink-500" size={18} />}
+              {editingId ? "Ажиглалт засварлах" : "Шинэ ажиглалт бичих"}
+            </h2>
+            {editingId && (
+              <button
+                onClick={cancelEditObs}
+                className="text-xs text-gray-400 hover:text-gray-600 underline"
+              >
+                Цуцлах
+              </button>
+            )}
+          </div>
+
+          <form onSubmit={handleSaveObservation} className="space-y-3">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Хүүхэд сонгох:</label>
               <select
@@ -283,13 +334,17 @@ export default function ObservationsPage() {
 
             <button
               type="submit"
-              className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+              className={`w-full text-white font-medium py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer ${
+                editingId ? "bg-emerald-500 hover:bg-emerald-600" : "bg-pink-500 hover:bg-pink-600"
+              }`}
             >
-              Тэмдэглэл хадгалах
+              {editingId ? <Check size={16} /> : <Plus size={16} />}
+              {editingId ? "Засварыг хадгалах" : "Тэмдэглэл хадгалах"}
             </button>
           </form>
         </div>
 
+        {/* САНГИЙН ДҮРСЛЭЛ */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 md:col-span-2">
           <h2 className="text-sm font-bold text-gray-800 border-b border-gray-100 pb-3 flex justify-between items-center">
             <span>Ажиглалтын сан ({filteredObservations.length})</span>
@@ -301,16 +356,30 @@ export default function ObservationsPage() {
           <div className="space-y-4">
             {filteredObservations.length > 0 ? (
               filteredObservations.map((obs) => (
-                <div key={obs.id} className="p-4 bg-gray-50/70 rounded-2xl border border-gray-100 space-y-3">
+                <div
+                  key={obs.id}
+                  className={`p-4 rounded-2xl border transition space-y-3 ${
+                    editingId === obs.id ? "bg-pink-50/40 border-pink-300 ring-2 ring-pink-200" : "bg-gray-50/70 border-gray-100"
+                  }`}
+                >
                   <div className="flex justify-between items-center text-xs">
                     <span className="font-bold text-pink-600 text-sm">{obs.child}</span>
                     <div className="flex items-center gap-3">
                       <span className="text-gray-400 flex items-center gap-1 font-medium">
                         <Calendar size={13} /> {obs.date}
                       </span>
+                      {/* Засварлах ба устгах товчлуурууд */}
+                      <button
+                        onClick={() => startEditObs(obs)}
+                        className="text-gray-400 hover:text-pink-600 transition p-1 hover:bg-pink-50 rounded"
+                        title="Засварлах"
+                      >
+                        <Edit2 size={14} />
+                      </button>
                       <button
                         onClick={() => handleDeleteObs(obs.id)}
-                        className="text-gray-400 hover:text-red-500 transition"
+                        className="text-gray-400 hover:text-red-500 transition p-1 hover:bg-red-50 rounded"
+                        title="Устгах"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -355,7 +424,7 @@ export default function ObservationsPage() {
         </div>
       </div>
 
-      {/* БҮТЭН ДЭЛГЭЦЭЭР ХАРУУЛАХ MODAL LIGHTBOX */}
+      {/* MODAL LIGHTBOX */}
       {activeMedia && (
         <div
           className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
