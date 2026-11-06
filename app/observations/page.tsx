@@ -70,30 +70,67 @@ export default function ObservationsPage() {
     }
   }, [childrenList]);
 
-  // Олон файл сонгон оруулах
-  const handleMultipleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Зургийн хэмжээг багасгах (Compress Image) функц
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx?.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", 0.7)); // 70% Чанартайгаар шахаж санамжинд хадгална
+        };
+        img.src = event.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Олон медиа файл оруулах тохиргоо
+  const handleMultipleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     const newMediaItems: MediaItem[] = [];
-    let processedCount = 0;
 
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        newMediaItems.push({
-          url: reader.result as string,
-          type: file.type.startsWith("video") ? "video" : "image",
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.type.startsWith("image")) {
+        const compressedUrl = await compressImage(file);
+        newMediaItems.push({ url: compressedUrl, type: "image" });
+      } else {
+        // Бичлэгийг шууд оруулах
+        const reader = new FileReader();
+        const videoUrl = await new Promise<string>((resolve) => {
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
         });
-        processedCount++;
+        newMediaItems.push({ url: videoUrl, type: "video" });
+      }
+    }
 
-        if (processedCount === files.length) {
-          setMediaList((prev) => [...prev, ...newMediaItems]);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-
+    setMediaList((prev) => [...prev, ...newMediaItems]);
     e.target.value = "";
   };
 
@@ -114,11 +151,14 @@ export default function ObservationsPage() {
     };
 
     const updated = [newObs, ...observations];
-    setObservations(updated);
-    localStorage.setItem("app_observations", JSON.stringify(updated));
-
-    setNote("");
-    setMediaList([]);
+    try {
+      localStorage.setItem("app_observations", JSON.stringify(updated));
+      setObservations(updated);
+      setNote("");
+      setMediaList([]);
+    } catch (error) {
+      alert("Санамж дүүрсэн байна! Цөөн эсвэл бага хэмжээтэй зураг хавсаргана уу.");
+    }
   };
 
   const handleDeleteObs = (id: number) => {
@@ -142,7 +182,7 @@ export default function ObservationsPage() {
             Ажиглалтын тэмдэглэл 👁️
           </h1>
           <p className="text-xs text-gray-400 mt-1">
-            Нэг ажиглалтад олон зураг болон бичлэг зэрэг хавсаргаж хадгалах
+            Олон зураг, бичлэгийг хэмжээг нь автоматаар тааруулан хадгална
           </p>
         </div>
 
@@ -207,10 +247,9 @@ export default function ObservationsPage() {
               />
             </div>
 
-            {/* Олон медиа файл оруулах хэсэг */}
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">
-                Зураг / Бичлэг хавсаргах (Олноор сонгож болно):
+                Зураг / Бичлэг хавсаргах:
               </label>
               <input
                 type="file"
@@ -233,7 +272,6 @@ export default function ObservationsPage() {
                         type="button"
                         onClick={() => removeMediaItem(index)}
                         className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 transition"
-                        title="Устгах"
                       >
                         <X size={12} />
                       </button>
@@ -284,11 +322,11 @@ export default function ObservationsPage() {
                   {obs.mediaList && obs.mediaList.length > 0 && (
                     <div className="pt-2">
                       <p className="text-[11px] font-semibold text-gray-500 mb-1.5 flex items-center gap-1">
-                        <ImageIcon size={14} /> Хавсаргасан медиа сан ({obs.mediaList.length}):
+                        <ImageIcon size={14} /> Хавсаргасан медиа ({obs.mediaList.length}):
                       </p>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                         {obs.mediaList.map((m, idx) => (
-                          <div key={idx} className="rounded-xl overflow-hidden border border-gray-200 aspect-video bg-black/5">
+                          <div key={idx} className="rounded-xl overflow-hidden border border-gray-200 aspect-video bg-gray-100">
                             {m.type === "image" ? (
                               <img src={m.url} alt={`obs-media-${idx}`} className="w-full h-full object-cover" />
                             ) : (
