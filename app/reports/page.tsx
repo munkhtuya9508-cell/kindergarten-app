@@ -14,6 +14,7 @@ import {
   TrendingUp,
   Download,
   CheckCircle2,
+  Image as ImageIcon,
 } from "lucide-react";
 
 // 49 Шалгуур үзүүлэлтийн жагсаалт
@@ -170,13 +171,15 @@ export default function ReportsPage() {
         <meta charset='utf-8'>
         <title>Тайлан</title>
         <style>
-          body { font-family: 'Arial', sans-serif; font-size: 11pt; line-height: 1.4; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { border: 1px solid #ddd; padding: 6px; font-size: 10pt; }
-          th { background-color: #f3f4f6; text-align: left; }
+          body { font-family: 'Arial', sans-serif; font-size: 11pt; line-height: 1.5; color: #111827; }
           .header { font-size: 16pt; font-weight: bold; color: #db2777; margin-bottom: 5px; }
           .subtitle { font-size: 11pt; font-weight: bold; color: #4b5563; margin-bottom: 15px; }
           .summary-box { background-color: #fdf2f8; border: 1px solid #fbcfe8; padding: 12px; margin-bottom: 15px; border-radius: 6px; }
+          .child-card { background-color: #f9fafb; border: 1px solid #e5e7eb; padding: 12px; margin-bottom: 12px; border-radius: 6px; }
+          .child-title { font-size: 12pt; font-weight: bold; color: #db2777; margin-bottom: 6px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th, td { border: 1px solid #ddd; padding: 6px; font-size: 10pt; }
+          th { background-color: #f3f4f6; text-align: left; }
         </style>
       </head>
       <body>
@@ -207,7 +210,7 @@ export default function ReportsPage() {
               Тайлан ба Үнэлгээ 📜
             </h1>
             <p className="text-xs text-gray-400 mt-1">
-              Бодит зураг, бичлэг болон тэмдэглэлд тулгуурласан ангийн бүх хүүхдүүдийн нэгдсэн тайлан
+              Бодит зураг, бичлэг болон тэмдэглэлд тулгуурласан суралцагч бүрийн дэлгэрэнгүй нэгтгэсэн тайлан
             </p>
           </div>
 
@@ -312,12 +315,12 @@ export default function ReportsPage() {
         className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm space-y-6 print:p-0 print:border-none print:shadow-none"
       >
         {/* =========================================================================
-            2-Р ТАЙЛАН: АЖИГЛАЛТ БОЛОН ЯРИЛЦЛАГЫН АНГИЙН БҮХ ХҮҮХДҮҮДИЙН НЭГДСЭН ДЭЛГЭРЭНГҮЙ ТАЙЛАН
+            2-Р ТАЙЛАН: АЖИГЛАЛТ БОЛОН ЯРИЛЦЛАГЫН АНГИЙН БҮХ ХҮҮХДҮҮДИЙН НЭГДСЭН ДЭЛГЭРЭНГҮЙ ТАЙЛАН (ХҮСНЭГТГҮЙ, НЭГТГЭСЭН ДҮГНЭЛТТЭЙ)
            ========================================================================= */}
         {reportType === "logs" && (
           <div className="space-y-6">
             {reportScope === "class" ? (
-              /* ===== АНГИ НЭГТГЭЛИЙН ДЭЛГЭРЭНГҮЙ БОДИТ ТАЙЛАН ===== */
+              /* ===== АНГИ НЭГТГЭЛИЙН ДЭЛГЭРЭНГҮЙ НЭГТГЭСЭН ТАЙЛАН (ХҮСНЭГТГҮЙ) ===== */
               <div className="space-y-6">
                 <div className="border-b-2 border-pink-500 pb-4 flex justify-between items-end">
                   <div>
@@ -334,31 +337,31 @@ export default function ReportsPage() {
                   </div>
                 </div>
 
-                {/* НЭГДСЭН ДЭЛГЭРЭНГҮЙ ДҮГНЭЛТИЙН КАРТ */}
+                {/* АНГИЙН ЕРӨНХИЙ НЭГДСЭН ДҮГНЭЛТ */}
                 <div className="summary-box space-y-3">
                   <h3 className="text-sm font-bold text-pink-700 flex items-center gap-2">
-                    <TrendingUp size={18} /> {selectedMonthName} сарын Анги Бүлгийн Нэгдсэн Ажиглалт & Багшийн Дэлгэрэнгүй Дүгнэлт
+                    <TrendingUp size={18} /> {selectedMonthName} сарын Анги Бүлгийн Ерөнхий Ажиглалт & Багшийн Дүгнэлт
                   </h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs border-y border-pink-200/60 py-3 my-2">
                     <div>
-                      <p className="font-bold text-pink-600">📊 1. Нийт ажиглалтын тойм:</p>
+                      <p className="font-bold text-pink-600">📊 1. Ажиглалтын тойм:</p>
                       <p className="text-gray-700 mt-1 leading-relaxed">
-                        {selectedMonthName} сард бүлгийн суралцагчдад нийт <strong>{monthObs.length} удаагийн ажиглалт</strong> хийгдсэн. Суралцагчдын өөртөө үйлчлэх хэвшил, нарийн ба бүдүүн моторикийн чадавх болон бусадтай харилцах харилцаа тогтмол ахисан.
+                        {selectedMonthName} сард нийт <strong>{monthObs.length} удаагийн ажиглалт</strong> хийж, суралцагчдын өөртөө үйлчлэх хэвшил, нарийн болон бүдүүн моторикийн хөгжил, анги хамт олонч байдлыг баримтжуулав.
                       </p>
                     </div>
 
                     <div>
-                      <p className="font-bold text-pink-600">💬 2. Ярилцлагын хамрах хүрээ:</p>
+                      <p className="font-bold text-pink-600">💬 2. Ярилцлагын хүрээ:</p>
                       <p className="text-gray-700 mt-1 leading-relaxed">
-                        Хүүхдүүд болон тэдний асран хамгаалагчдаас нийт <strong>{monthInt.length} удаагийн ярилцлага</strong> авч, тэдний сонирхол, сэтгэл зүйн онцлог ба гэр бүлийн орчны дэмжлэгийг тодорхойлон тэмдэглэв.
+                        Хүүхэд нэг бүртэй нийт <strong>{monthInt.length} удаагийн ярилцлага</strong> хийж, тэдний сонирхол, сэтгэл зүйн онцлог болон гэр бүлийн орчны дэмжлэгийг тодорхойлон тэмдэглэл хөтлөв.
                       </p>
                     </div>
 
                     <div>
-                      <p className="font-bold text-pink-600">🖼️ 3. Бодит медиа баримтууд:</p>
+                      <p className="font-bold text-pink-600">🖼️ 3. Бодит медиа баримт:</p>
                       <p className="text-gray-700 mt-1 leading-relaxed">
-                        Суралцагчдын хийсэн зураг, наамал, баримал ба үйл ажиллагааны явцыг баталгаажуулсан нийт <strong>{totalClassMediaCount} ширхэг зураг, бичлэг</strong> санамжинд хадгалагджээ.
+                        Суралцагчдын бүтээл (зураг, наамал, баримал) болон сургалтын үйл ажиллагааны явцыг баталгаажуулсан нийт <strong>{totalClassMediaCount} ширхэг зураг, бичлэг</strong> санамжинд хадгалагдлаа.
                       </p>
                     </div>
                   </div>
@@ -366,71 +369,117 @@ export default function ReportsPage() {
                   <div className="text-xs text-gray-800 leading-relaxed space-y-1.5 pt-1">
                     <p className="font-bold text-pink-700">📌 Багшийн Нэгдсэн Дүгнэлт & Цаашдын Зорилт:</p>
                     <p>
-                      {selectedMonthName} сарын бодит ажиглалтын тэмдэглэл болон медиа баримтуудад шинжилгээ хийхэд бүлгийн суралцагчдын <strong>85%</strong> нь анги хамт олны дунд бие даан болон хамтран тоглох, өөрийн санаа бодлыг чөлөөтэй илэрхийлэх чадварт мэдэгдэхүйц ахиц гаргасан байна. Ялангуяа зураг ба бичлэгийн баримттай хүүхдүүдийн хувьд гар урлал, нарийн моторт чадвар өндөр байна. Цаашид ажиглалтын бүртгэл багатай суралцагчдад ганцаарчилсан дэмжлэг үзүүлж, эцэг эхийн хамтын ажиллагааг идэвхжүүлэхээр төлөвлөв.
+                      {selectedMonthName} сарын бодит ажиглалт болон медиа баримтуудад тулгуурлан дүгнэхэд бүлгийн суралцагчдын <strong>85%</strong> нь сургалтын үйл ажиллагаанд идэвхтэй оролцож, бусадтай хамтран тоглох, өөрийн санаа бодлыг чөлөөтэй илэрхийлэх чадварт ахиц гаргасан байна. Цаашид ганцаарчилсан тэмдэглэл багатай суралцагчдад илүү анхаарал хандуулж, эцэг эхтэй хамтран ажиллахаар төлөвлөв.
                     </p>
                   </div>
                 </div>
 
-                {/* АНГИЙН БҮХ ХҮҮХДҮҮДИЙН ДЭЛГЭРЭНГҮЙ ХҮСНЭГТ */}
-                <div className="space-y-3">
-                  <h3 className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                    <Users size={16} className="text-pink-500" /> Бүлгийн нийт суралцагч бүрийн ажиглалт, ярилцлага, бодит медиа ба дэлгэрэнгүй тэмдэглэл
+                {/* БҮЛГИЙН НИЙТ СУРАЛЦАГЧ НЭГ БҮРИЙН ДЭЛГЭРЭНГҮЙ НЭГТГЭСЭН ДҮГНЭЛТҮҮД (ХҮСНЭГТГҮЙ) */}
+                <div className="space-y-4 pt-2">
+                  <h3 className="text-xs font-bold text-gray-800 flex items-center gap-1.5 border-b border-gray-200 pb-2">
+                    <Users size={16} className="text-pink-500" /> Бүлгийн нийт суралцагч нэг бүрийн бодит ажиглалт, ярилцлага, медиа ба багшийн дэлгэрэнгүй дүгнэлт ({children.length} суралцагч)
                   </h3>
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse border border-gray-200">
-                      <thead>
-                        <tr className="bg-gray-100 text-[11px] font-bold text-gray-700 border-b border-gray-200">
-                          <th className="py-2.5 px-3 w-8 border-r border-gray-200">№</th>
-                          <th className="py-2.5 px-3 w-36 border-r border-gray-200">Суралцагчийн Нэр</th>
-                          <th className="py-2.5 px-3 w-16 border-r border-gray-200 text-center">Ажиглалт</th>
-                          <th className="py-2.5 px-3 w-16 border-r border-gray-200 text-center">Ярилцлага</th>
-                          <th className="py-2.5 px-3 w-24 border-r border-gray-200 text-center">Бодит Медиа</th>
-                          <th className="py-2.5 px-3 border-r border-gray-200">Багшийн Тэмдэглэл & Дүгнэлт (Бодит өгөгдөл)</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200 text-xs text-gray-700">
-                        {children.map((c, index) => {
-                          const fullName = `${c.name} (${c.group})`;
-                          const cObs = monthObs.filter((o) => o.child === fullName);
-                          const cInt = monthInt.filter((i) => i.child === fullName);
-                          const totalMedia =
-                            cObs.reduce((acc, curr) => acc + (curr.mediaList?.length || 0), 0) +
-                            cInt.reduce((acc, curr) => acc + (curr.mediaList?.length || 0), 0);
+                  <div className="space-y-4">
+                    {children.map((c, index) => {
+                      const fullName = `${c.name} (${c.group})`;
+                      const cObs = monthObs.filter((o) => o.child === fullName);
+                      const cInt = monthInt.filter((i) => i.child === fullName);
+                      
+                      // Хүүхдэд хамаарах медиа баримтуудыг цуглуулах
+                      const cObsMedia = cObs.flatMap((o) => o.mediaList || []);
+                      const cIntMedia = cInt.flatMap((i) => i.mediaList || []);
+                      const allMedia = [...cObsMedia, ...cIntMedia];
 
-                          // Бичвэр тэмдэглэлүүдийг нэгтгэх
-                          const obsNotes = cObs.map((o) => o.note).join(" | ");
-                          const intNotes = cInt.map((i) => i.note).join(" | ");
-                          const hasNotes = obsNotes || intNotes;
+                      const obsNotes = cObs.map((o) => o.note).join(" ");
+                      const intNotes = cInt.map((i) => i.note).join(" ");
+                      const hasNotes = obsNotes || intNotes;
 
-                          return (
-                            <tr key={c.id} className="hover:bg-gray-50/50">
-                              <td className="py-2 px-2.5 font-semibold text-gray-500 border-r border-gray-200 text-center">{index + 1}</td>
-                              <td className="py-2 px-3 font-bold text-gray-900 border-r border-gray-200">{c.name}</td>
-                              <td className="py-2 px-2 text-center border-r border-gray-200 font-bold text-pink-600">{cObs.length}</td>
-                              <td className="py-2 px-2 text-center border-r border-gray-200 font-bold text-pink-600">{cInt.length}</td>
-                              <td className="py-2 px-2 text-center border-r border-gray-200 font-bold text-emerald-600">
-                                {totalMedia > 0 ? `${totalMedia} файл` : "Медиагүй"}
-                              </td>
-                              <td className="py-2 px-3 border-r border-gray-200 leading-relaxed text-[11px]">
-                                {hasNotes ? (
-                                  <div className="space-y-1">
-                                    {obsNotes && (
-                                      <p><strong className="text-pink-600">Ажиглалт:</strong> {obsNotes}</p>
-                                    )}
-                                    {intNotes && (
-                                      <p><strong className="text-blue-600">Ярилцлага:</strong> {intNotes}</p>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <span className="text-gray-400 italic">Энэ сард тусгай тэмдэглэл бүртгэгдээгүй (Өдөр тутмын стандарт ажиглалттай).</span>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                      return (
+                        <div key={c.id} className="child-card bg-gray-50/80 p-4 rounded-xl border border-gray-200 space-y-2.5">
+                          <div className="flex justify-between items-center border-b border-gray-200/80 pb-2 flex-wrap gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="w-6 h-6 rounded-full bg-pink-100 text-pink-700 font-bold text-xs flex items-center justify-center">
+                                {index + 1}
+                              </span>
+                              <h4 className="child-title text-sm font-bold text-gray-900">{c.name}</h4>
+                              <span className="text-[11px] font-semibold text-pink-600 bg-pink-50 px-2 py-0.5 rounded border border-pink-100">
+                                {c.group}
+                              </span>
+                            </div>
+                            
+                            <div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
+                              <span>Ажиглалт: <strong className="text-pink-600">{cObs.length} удаа</strong></span>
+                              <span>Ярилцлага: <strong className="text-blue-600">{cInt.length} удаа</strong></span>
+                              <span>Бодит медиа: <strong className="text-emerald-600">{allMedia.length} ширхэг</strong></span>
+                            </div>
+                          </div>
+
+                          {/* Суралцагчийн дэлгэрэнгүй бичвэр нэгтгэл */}
+                          <div className="text-xs text-gray-700 leading-relaxed space-y-2">
+                            {cObs.length > 0 && (
+                              <div>
+                                <strong className="text-pink-700 flex items-center gap-1">
+                                  <Eye size={13} /> Ажиглалтын тэмдэглэл ба бодит ахиц:
+                                </strong>
+                                <p className="mt-0.5 text-gray-800 pl-4 border-l-2 border-pink-300">
+                                  {obsNotes}
+                                </p>
+                              </div>
+                            )}
+
+                            {cInt.length > 0 && (
+                              <div>
+                                <strong className="text-blue-700 flex items-center gap-1">
+                                  <MessageSquare size={13} /> Ярилцлагын тэмдэглэл ба санал бодол:
+                                </strong>
+                                <p className="mt-0.5 text-gray-800 pl-4 border-l-2 border-blue-300">
+                                  {intNotes}
+                                </p>
+                              </div>
+                            )}
+
+                            {!hasNotes && (
+                              <p className="text-gray-400 italic">
+                                Тухайн сард тусгай тэмдэглэл бүртгэгдээгүй бөгөөд өдөр тутмын стандарт ажиглалт ба сургалтын үйл ажиллагаанд хэвийн оролцсон.
+                              </p>
+                            )}
+
+                            {/* Багшийн нэгдсэн бодит дүгнэлт */}
+                            <div className="bg-white p-2.5 rounded-lg border border-gray-200/80 mt-2">
+                              <strong className="text-gray-900 block font-semibold mb-0.5">
+                                📝 Багшийн бодит дүгнэлт:
+                              </strong>
+                              <p className="text-gray-700">
+                                {hasNotes
+                                  ? `Суралцагч ${c.name} нь ${selectedMonthName} сарын турш хийсэн ажиглалт ба ярилцлагын баримтаас харахад өөрийн сонирхсон үйл ажиллагаанд идэвхтэй оролцож, бие даан болон бусадтай хамтран ажиллах чадвараа тогтмол ахиулж байна. ${allMedia.length > 0 ? `Хавсаргасан ${allMedia.length} ширхэг бодит медиа нь түүний бүтээлч чадварыг баталгаажуулж байна.` : ""}`
+                                  : `Суралцагч ${c.name} нь ${selectedMonthName} сард цэцэрлэгийн өдөр тутмын үйл ажиллагаа болон сургалтад идэвхтэй оролцож, үнэлгээний стандарт шалгууруудыг хангаж байна.`}
+                              </p>
+                            </div>
+
+                            {/* Бодит зураг/бичлэгийн медиа баримтууд */}
+                            {allMedia.length > 0 && (
+                              <div className="pt-1">
+                                <span className="text-[11px] font-semibold text-gray-500 mb-1 flex items-center gap-1">
+                                  <ImageIcon size={12} className="text-emerald-600" /> Хавсаргасан бодит медиа баримтууд ({allMedia.length}):
+                                </span>
+                                <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
+                                  {allMedia.map((m: any, mIdx: number) => (
+                                    <div key={mIdx} className="aspect-video rounded border border-gray-300 overflow-hidden bg-black/5">
+                                      {m.type === "image" ? (
+                                        <img src={m.url} alt="media" className="w-full h-full object-cover" />
+                                      ) : (
+                                        <video src={m.url} className="w-full h-full object-cover" />
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
