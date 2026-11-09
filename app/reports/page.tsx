@@ -157,12 +157,12 @@ export default function ReportsPage() {
 
   const selectedMonthName = MONTHS.find((m) => m.value === selectedMonth)?.label || "";
 
-  // 1. ХЭВЛЭХ ҮЙЛДЭЛ (Шууд хэвлэгч рүү илгээх эсвэл Браузерын Print цонх нээх)
+  // 1. ХЭВЛЭХ ҮЙЛДЭЛ (Тусдаа - Браузерын print цонх)
   const handlePrint = () => {
     window.print();
   };
 
-  // 2. PDF ФАЙЛ БОЛГОН ТАТАХ ҮЙЛДЭЛ
+  // 2. PDF ТАТАХ ҮЙЛДЭЛ (Тусдаа - html2pdf.js)
   const handleDownloadPDF = async () => {
     const reportElement = document.getElementById("printable-report");
     if (!reportElement) return;
@@ -186,13 +186,13 @@ export default function ReportsPage() {
       await html2pdf().set(opt).from(reportElement).save();
     } catch (error) {
       console.error("PDF үүсгэхэд алдаа гарлаа:", error);
-      alert("PDF үүсгэхэд алдаа гарлаа. Та 'Хэвлэх' товчийг ашиглаж PDF-ээр хадгална уу.");
+      alert("PDF үүсгэхэд алдаа гарлаа. Та 'Хэвлэх' товчийг ашиглан PDF-ээр хадгалж болно.");
     } finally {
       setIsGeneratingPdf(false);
     }
   };
 
-  // 3. MS WORD (.docx) ФАЙЛ БОЛГОН ТАТАХ ҮЙЛДЭЛ
+  // 3. WORD ТАТАХ ҮЙЛДЭЛ
   const handleDownloadWord = () => {
     const reportElement = document.getElementById("printable-report");
     if (!reportElement) return;
@@ -308,7 +308,7 @@ export default function ReportsPage() {
               <Download size={15} /> Word (.docx)
             </button>
 
-            {/* PDF ТАТАХ ТОВЧ (ТУСДАА) */}
+            {/* PDF ТАТАХ ТОВЧ (ТУСДАА УЛААН ТОВЧ) */}
             <button
               onClick={handleDownloadPDF}
               disabled={isGeneratingPdf}
@@ -317,7 +317,7 @@ export default function ReportsPage() {
               <FileDown size={15} /> {isGeneratingPdf ? "PDF бэлдэж байна..." : "PDF татах"}
             </button>
 
-            {/* ХЭВЛЭХ ТОВЧ (ТУСДАА) */}
+            {/* ХЭВЛЭХ ТОВЧ (ТУСДАА ЯГААН ТОВЧ) */}
             <button
               onClick={handlePrint}
               className="bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition cursor-pointer"
