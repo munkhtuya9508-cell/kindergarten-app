@@ -13,7 +13,7 @@ import {
   MessageSquare,
   TrendingUp,
   Download,
-  CheckCircle2,
+  FileDown,
   Image as ImageIcon,
 } from "lucide-react";
 
@@ -103,6 +103,8 @@ export default function ReportsPage() {
     String(new Date().getMonth() + 1).padStart(2, "0")
   );
 
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
   useEffect(() => {
     const savedChildren = localStorage.getItem("app_children");
     const savedObs = localStorage.getItem("app_observations");
@@ -155,12 +157,42 @@ export default function ReportsPage() {
 
   const selectedMonthName = MONTHS.find((m) => m.value === selectedMonth)?.label || "";
 
-  // PDF / Хэвлэх
-  const handlePrintPDF = () => {
+  // 1. ХЭВЛЭХ ҮЙЛДЭЛ (Шууд хэвлэгч рүү илгээх эсвэл Браузерын Print цонх нээх)
+  const handlePrint = () => {
     window.print();
   };
 
-  // MS Word (.docx) татах
+  // 2. PDF ФАЙЛ БОЛГОН ТАТАХ ҮЙЛДЭЛ
+  const handleDownloadPDF = async () => {
+    const reportElement = document.getElementById("printable-report");
+    if (!reportElement) return;
+
+    try {
+      setIsGeneratingPdf(true);
+      const html2pdf = (await import("html2pdf.js")).default;
+      
+      const fileName = `Тайлан_${reportType === "criteria" ? "49Шалгуур" : "АжиглалтЯрилцлага"}_${
+        reportScope === "single" ? selectedChild.replace(/\s+/g, "_") : "Анги_Нэгтгэл"
+      }_${selectedMonth}сар.pdf`;
+
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename: fileName,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      };
+
+      await html2pdf().set(opt).from(reportElement).save();
+    } catch (error) {
+      console.error("PDF үүсгэхэд алдаа гарлаа:", error);
+      alert("PDF үүсгэхэд алдаа гарлаа. Та 'Хэвлэх' товчийг ашиглаж PDF-ээр хадгална уу.");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  // 3. MS WORD (.docx) ФАЙЛ БОЛГОН ТАТАХ ҮЙЛДЭЛ
   const handleDownloadWord = () => {
     const reportElement = document.getElementById("printable-report");
     if (!reportElement) return;
@@ -210,7 +242,7 @@ export default function ReportsPage() {
               Тайлан ба Үнэлгээ 📜
             </h1>
             <p className="text-xs text-gray-400 mt-1">
-              Бодит зураг, бичлэг болон тэмдэглэлд тулгуурласан суралцагч бүрийн дэлгэрэнгүй нэгтгэсэн тайлан
+              Тайланг PDF болгон татах, Word файл авах эсвэл шууд хэвлэгч рүү илгээх
             </p>
           </div>
 
@@ -268,6 +300,7 @@ export default function ReportsPage() {
               </select>
             )}
 
+            {/* WORD ТАТАХ ТОВЧ */}
             <button
               onClick={handleDownloadWord}
               className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition cursor-pointer"
@@ -275,11 +308,21 @@ export default function ReportsPage() {
               <Download size={15} /> Word (.docx)
             </button>
 
+            {/* PDF ТАТАХ ТОВЧ (ТУСДАА) */}
             <button
-              onClick={handlePrintPDF}
+              onClick={handleDownloadPDF}
+              disabled={isGeneratingPdf}
+              className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition cursor-pointer disabled:opacity-50"
+            >
+              <FileDown size={15} /> {isGeneratingPdf ? "PDF бэлдэж байна..." : "PDF татах"}
+            </button>
+
+            {/* ХЭВЛЭХ ТОВЧ (ТУСДАА) */}
+            <button
+              onClick={handlePrint}
               className="bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition cursor-pointer"
             >
-              <Printer size={15} /> PDF / Хэвлэх
+              <Printer size={15} /> Хэвлэх
             </button>
           </div>
         </div>
@@ -309,18 +352,17 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* А4 ХЭВЛЭХ / WORD ТАТАХ ХҮҮДЭС */}
+      {/* А4 ХЭВЛЭХ / PDF / WORD ТАТАХ ХҮҮДЭС */}
       <div
         id="printable-report"
         className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm space-y-6 print:p-0 print:border-none print:shadow-none"
       >
         {/* =========================================================================
-            2-Р ТАЙЛАН: АЖИГЛАЛТ БОЛОН ЯРИЛЦЛАГЫН АНГИЙН БҮХ ХҮҮХДҮҮДИЙН НЭГДСЭН ДЭЛГЭРЭНГҮЙ ТАЙЛАН (ХҮСНЭГТГҮЙ, НЭГТГЭСЭН ДҮГНЭЛТТЭЙ)
+            2-Р ТАЙЛАН: АЖИГЛАЛТ БОЛОН ЯРИЛЦЛАГЫН АНГИЙН БҮХ ХҮҮХДҮҮДИЙН НЭГДСЭН ДЭЛГЭРЭНГҮЙ ТАЙЛАН
            ========================================================================= */}
         {reportType === "logs" && (
           <div className="space-y-6">
             {reportScope === "class" ? (
-              /* ===== АНГИ НЭГТГЭЛИЙН ДЭЛГЭРЭНГҮЙ НЭГТГЭСЭН ТАЙЛАН (ХҮСНЭГТГҮЙ) ===== */
               <div className="space-y-6">
                 <div className="border-b-2 border-pink-500 pb-4 flex justify-between items-end">
                   <div>
@@ -337,7 +379,6 @@ export default function ReportsPage() {
                   </div>
                 </div>
 
-                {/* АНГИЙН ЕРӨНХИЙ НЭГДСЭН ДҮГНЭЛТ */}
                 <div className="summary-box space-y-3">
                   <h3 className="text-sm font-bold text-pink-700 flex items-center gap-2">
                     <TrendingUp size={18} /> {selectedMonthName} сарын Анги Бүлгийн Ерөнхий Ажиглалт & Багшийн Дүгнэлт
@@ -374,7 +415,6 @@ export default function ReportsPage() {
                   </div>
                 </div>
 
-                {/* БҮЛГИЙН НИЙТ СУРАЛЦАГЧ НЭГ БҮРИЙН ДЭЛГЭРЭНГҮЙ НЭГТГЭСЭН ДҮГНЭЛТҮҮД (ХҮСНЭГТГҮЙ) */}
                 <div className="space-y-4 pt-2">
                   <h3 className="text-xs font-bold text-gray-800 flex items-center gap-1.5 border-b border-gray-200 pb-2">
                     <Users size={16} className="text-pink-500" /> Бүлгийн нийт суралцагч нэг бүрийн бодит ажиглалт, ярилцлага, медиа ба багшийн дэлгэрэнгүй дүгнэлт ({children.length} суралцагч)
@@ -386,7 +426,6 @@ export default function ReportsPage() {
                       const cObs = monthObs.filter((o) => o.child === fullName);
                       const cInt = monthInt.filter((i) => i.child === fullName);
                       
-                      // Хүүхдэд хамаарах медиа баримтуудыг цуглуулах
                       const cObsMedia = cObs.flatMap((o) => o.mediaList || []);
                       const cIntMedia = cInt.flatMap((i) => i.mediaList || []);
                       const allMedia = [...cObsMedia, ...cIntMedia];
@@ -415,7 +454,6 @@ export default function ReportsPage() {
                             </div>
                           </div>
 
-                          {/* Суралцагчийн дэлгэрэнгүй бичвэр нэгтгэл */}
                           <div className="text-xs text-gray-700 leading-relaxed space-y-2">
                             {cObs.length > 0 && (
                               <div>
@@ -445,7 +483,6 @@ export default function ReportsPage() {
                               </p>
                             )}
 
-                            {/* Багшийн нэгдсэн бодит дүгнэлт */}
                             <div className="bg-white p-2.5 rounded-lg border border-gray-200/80 mt-2">
                               <strong className="text-gray-900 block font-semibold mb-0.5">
                                 📝 Багшийн бодит дүгнэлт:
@@ -457,7 +494,6 @@ export default function ReportsPage() {
                               </p>
                             </div>
 
-                            {/* Бодит зураг/бичлэгийн медиа баримтууд */}
                             {allMedia.length > 0 && (
                               <div className="pt-1">
                                 <span className="text-[11px] font-semibold text-gray-500 mb-1 flex items-center gap-1">
@@ -484,7 +520,6 @@ export default function ReportsPage() {
                 </div>
               </div>
             ) : (
-              /* ===== ХҮҮХЭД БҮРИЙН ГАНЦААРЧИЛСАН ДЭЛГЭРЭНГҮЙ ТАЙЛАН ===== */
               <div className="space-y-6">
                 <div className="border-b-2 border-pink-500 pb-4 flex justify-between items-end">
                   <div>
@@ -515,7 +550,6 @@ export default function ReportsPage() {
                   </p>
                 </div>
 
-                {/* АЖИГЛАЛТУУД */}
                 <div className="space-y-3">
                   <h3 className="text-xs font-bold text-gray-800 border-b border-gray-200 pb-1">
                     1. Ажиглалтын тэмдэглэлүүд ({currentObs.length})
@@ -535,7 +569,6 @@ export default function ReportsPage() {
                   )}
                 </div>
 
-                {/* ЯРИЛЦЛАГУУД */}
                 <div className="space-y-3 pt-2">
                   <h3 className="text-xs font-bold text-gray-800 border-b border-gray-200 pb-1">
                     2. Ярилцлагын тэмдэглэлүүд ({currentInt.length})
