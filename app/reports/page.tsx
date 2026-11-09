@@ -11,12 +11,8 @@ import {
   FileText,
   Eye,
   MessageSquare,
-  Image as ImageIcon,
-  Video,
-  CheckCircle2,
   TrendingUp,
-  BookOpen,
-  Check,
+  Download,
 } from "lucide-react";
 
 // 49 Шалгуур үзүүлэлтийн жагсаалт
@@ -97,13 +93,9 @@ export default function ReportsPage() {
   const [observations, setObservations] = useState<any[]>([]);
   const [interviews, setInterviews] = useState<any[]>([]);
 
-  // 1. ТАЙЛАНГИЙН ТӨРӨЛ
   const [reportType, setReportType] = useState<"criteria" | "logs">("logs");
-
-  // 2. ТАЙЛАНГИЙН ХҮРЭЭ
   const [reportScope, setReportScope] = useState<"single" | "class">("single");
 
-  // 3. Сонгогдсон Хүүхэд ба Сар
   const [selectedChild, setSelectedChild] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>(
     String(new Date().getMonth() + 1).padStart(2, "0")
@@ -145,33 +137,71 @@ export default function ReportsPage() {
     }
   }, []);
 
-  // Тухайн сарын шүүлтүүр
   const monthObs = observations.filter((o) => (o.date ? o.date.split("-")[1] === selectedMonth : true));
   const monthInt = interviews.filter((i) => (i.date ? i.date.split("-")[1] === selectedMonth : true));
 
-  // Ганцаарчилсан хүүхдийн шүүлтүүр
   const currentObs = monthObs.filter((o) => o.child === selectedChild);
   const currentInt = monthInt.filter((i) => i.child === selectedChild);
 
-  // Бодит медиа файлуудын тоо
   const currentObsMediaCount = currentObs.reduce((acc, curr) => acc + (curr.mediaList?.length || 0), 0);
   const currentIntMediaCount = currentInt.reduce((acc, curr) => acc + (curr.mediaList?.length || 0), 0);
   const totalSingleMediaCount = currentObsMediaCount + currentIntMediaCount;
 
-  // Анги нэгтгэлийн бодит медиа тоо
   const totalClassObsMedia = monthObs.reduce((acc, curr) => acc + (curr.mediaList?.length || 0), 0);
   const totalClassIntMedia = monthInt.reduce((acc, curr) => acc + (curr.mediaList?.length || 0), 0);
   const totalClassMediaCount = totalClassObsMedia + totalClassIntMedia;
 
-  const handlePrint = () => {
+  const selectedMonthName = MONTHS.find((m) => m.value === selectedMonth)?.label || "";
+
+  // PDF / Хэвлэх функц
+  const handlePrintPDF = () => {
     window.print();
   };
 
-  const selectedMonthName = MONTHS.find((m) => m.value === selectedMonth)?.label || "";
+  // MS Word (.docx / .doc) Файл татах функц
+  const handleDownloadWord = () => {
+    const reportElement = document.getElementById("printable-report");
+    if (!reportElement) return;
+
+    const htmlContent = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head>
+        <meta charset='utf-8'>
+        <title>Тайлан</title>
+        <style>
+          body { font-family: 'Arial', sans-serif; font-size: 11pt; line-height: 1.4; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th, td { border: 1px solid #ddd; padding: 6px; font-size: 10pt; }
+          th { background-color: #f3f4f6; text-align: left; }
+          .header { font-size: 16pt; font-weight: bold; color: #db2777; margin-bottom: 5px; }
+          .subtitle { font-size: 11pt; font-weight: bold; color: #4b5563; margin-bottom: 15px; }
+          .summary-box { background-color: #fdf2f8; border: 1px solid #fbcfe8; padding: 10px; margin-bottom: 15px; border-radius: 6px; }
+        </style>
+      </head>
+      <body>
+        ${reportElement.innerHTML}
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob(["\ufeff", htmlContent], {
+      type: "application/msword",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Тайлан_${reportType === "criteria" ? "49Шалгуур" : "АжиглалтЯрилцлага"}_${
+      reportScope === "single" ? selectedChild.replace(/\s+/g, "_") : "Анги_Нэгтгэл"
+    }_${selectedMonth}сар.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
 
   return (
     <div className="space-y-6 max-w-5xl">
-      {/* ДЭЭД УДИРДЛАГЫН ХЭСЭГ (Print үед нуугдана) */}
+      {/* ДЭЭД УДИРДЛАГЫН ХЭСЭГ (Print/PDF үед нуугдана) */}
       <div className="space-y-4 print:hidden">
         <div className="flex justify-between items-center flex-wrap gap-4">
           <div>
@@ -179,7 +209,7 @@ export default function ReportsPage() {
               Тайлан ба Үнэлгээ 📜
             </h1>
             <p className="text-xs text-gray-400 mt-1">
-              Бодит хавсаргасан зураг, бичлэг ба тэмдэглэлд тулгуурласан дэлгэрэнгүй дүгнэлттэй тайлан
+              Тайланг PDF-ээр хэвлэх эсвэл Word (.docx) файл болгон татаж авах
             </p>
           </div>
 
@@ -238,11 +268,22 @@ export default function ReportsPage() {
               </select>
             )}
 
+            {/* WORD ТАТАХ ТОВЧ */}
             <button
-              onClick={handlePrint}
-              className="bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm transition cursor-pointer"
+              onClick={handleDownloadWord}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+              title="MS Word файл татах"
             >
-              <Printer size={16} /> Тайлан хэвлэх
+              <Download size={15} /> Word (.docx)
+            </button>
+
+            {/* PDF / ХЭВЛЭХ ТОВЧ */}
+            <button
+              onClick={handlePrintPDF}
+              className="bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+              title="PDF-ээр хадгалах / Хэвлэх"
+            >
+              <Printer size={15} /> PDF / Хэвлэх
             </button>
           </div>
         </div>
@@ -272,33 +313,33 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* А4 ХЭВЛЭХ ХҮҮДЭС */}
-      <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm space-y-6 print:p-0 print:border-none print:shadow-none">
-        
-        {/* =========================================================================
-            1-Р ТАЙЛАН: 49 ШАЛГУУР ҮЗҮҮЛЭЛТИЙН ТАЙЛАН
-           ========================================================================= */}
+      {/* А4 ХЭВЛЭХ / WORD ТАТАХ ХҮҮДЭС */}
+      <div
+        id="printable-report"
+        className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm space-y-6 print:p-0 print:border-none print:shadow-none"
+      >
+        {/* 1-Р ТАЙЛАН: 49 ШАЛГУУР ҮЗҮҮЛЭЛТИЙН ТАЙЛАН */}
         {reportType === "criteria" && (
           <div className="space-y-6">
             {reportScope === "single" ? (
               <div className="space-y-6">
                 <div className="border-b-2 border-pink-500 pb-4 flex justify-between items-end">
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">{selectedChild || "Хүүхэд сонгогдоогүй байна"}</h2>
-                    <p className="text-xs font-bold text-pink-600 mt-1 flex items-center gap-1">
-                      <Award size={13} /> {selectedMonthName} сарын суралцагчийн 49 шалгуур үзүүлэлтийн тайлан
+                    <h2 className="header">{selectedChild || "Хүүхэд сонгогдоогүй байна"}</h2>
+                    <p className="subtitle">
+                      {selectedMonthName} сарын суралцагчийн 49 шалгуур үзүүлэлтийн тайлан
                     </p>
                   </div>
                   <div className="text-right text-xs text-gray-500">
-                    <p>Тайлангийн төрөл: <span className="font-bold text-pink-600">49 Шалгуур</span></p>
+                    <p>Тайлангийн төрөл: <strong>49 Шалгуур</strong></p>
                   </div>
                 </div>
 
-                <div className="bg-pink-50/50 p-4 rounded-xl border border-pink-100 space-y-2">
+                <div className="summary-box">
                   <h3 className="text-xs font-bold text-pink-700 flex items-center gap-1.5">
                     <Sparkles size={16} /> Шалгуур үзүүлэлтийн хураангуй:
                   </h3>
-                  <p className="text-xs text-gray-700 leading-relaxed">
+                  <p className="text-xs text-gray-700 leading-relaxed mt-1">
                     Суралцагч {selectedChild}-ийн {selectedMonthName} сард үзүүлсэн Мэдлэг (1-8), Чадвар (9-36), Төлөвшил (37-49)-ийн 49 шалгуур үзүүлэлтийн гүйцэтгэлийн түвшинг доорх хүснэгтээр харуулав.
                   </p>
                 </div>
@@ -306,7 +347,7 @@ export default function ReportsPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-gray-100/70 text-[11px] font-bold text-gray-700 border-b border-gray-200">
+                      <tr className="bg-gray-100 text-[11px] font-bold text-gray-700 border-b border-gray-200">
                         <th className="py-2.5 px-3 w-10">№</th>
                         <th className="py-2.5 px-3 w-24">Айн нэр</th>
                         <th className="py-2.5 px-3">Үнэлгээний шалгуур</th>
@@ -317,20 +358,12 @@ export default function ReportsPage() {
                       {EVALUATION_CRITERIA.map((c) => {
                         const isAchieved = currentObs.length > 0 || currentInt.length > 0 || c.id <= 25;
                         return (
-                          <tr key={c.id} className="hover:bg-gray-50/50">
+                          <tr key={c.id}>
                             <td className="py-1.5 px-3 font-semibold text-gray-500">{c.id}</td>
                             <td className="py-1.5 px-3 font-bold text-pink-600 text-[11px]">{c.category}</td>
                             <td className="py-1.5 px-3">{c.title}</td>
-                            <td className="py-1.5 px-3 text-center">
-                              <span
-                                className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                  isAchieved
-                                    ? "bg-emerald-100 text-emerald-700"
-                                    : "bg-orange-100 text-orange-700"
-                                }`}
-                              >
-                                {isAchieved ? "Хангалттай" : "Ахиж байна"}
-                              </span>
+                            <td className="py-1.5 px-3 text-center font-bold">
+                              {isAchieved ? "Хангалттай" : "Ахиж байна"}
                             </td>
                           </tr>
                         );
@@ -343,13 +376,13 @@ export default function ReportsPage() {
               <div className="space-y-6">
                 <div className="border-b-2 border-pink-500 pb-4 flex justify-between items-end">
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">Бүлгийн 49 Шалгуур Үзүүлэлтийн Нэгтгэл 📊</h2>
-                    <p className="text-xs font-bold text-pink-600 mt-1 flex items-center gap-1">
-                      <Calendar size={13} /> {selectedMonthName} сар — Нийт суралцагчдын шалгуур биелэлт
+                    <h2 className="header">Бүлгийн 49 Шалгуур Үзүүлэлтийн Нэгтгэл</h2>
+                    <p className="subtitle">
+                      {selectedMonthName} сар — Нийт суралцагчдын шалгуур биелэлт
                     </p>
                   </div>
                   <div className="text-right text-xs text-gray-500">
-                    <p>Бүртгэлтэй хүүхэд: <span className="font-bold text-pink-600">{children.length}</span></p>
+                    <p>Бүртгэлтэй хүүхэд: <strong>{children.length}</strong></p>
                   </div>
                 </div>
 
@@ -370,12 +403,12 @@ export default function ReportsPage() {
                         const fullName = `${c.name} (${c.group})`;
                         const hasLogs = monthObs.some((o) => o.child === fullName) || monthInt.some((i) => i.child === fullName);
                         return (
-                          <tr key={c.id} className="hover:bg-gray-50/50">
-                            <td className="py-2 px-3 font-semibold text-gray-500 border-r border-gray-200">{index + 1}</td>
-                            <td className="py-2 px-3 font-bold text-gray-800 border-r border-gray-200">{c.name}</td>
-                            <td className="py-2 px-3 text-center border-r border-gray-200 font-medium text-emerald-600">8/8 (100%)</td>
-                            <td className="py-2 px-3 text-center border-r border-gray-200 font-medium text-emerald-600">{hasLogs ? "24/28 (85%)" : "20/28 (71%)"}</td>
-                            <td className="py-2 px-3 text-center border-r border-gray-200 font-medium text-emerald-600">{hasLogs ? "12/13 (92%)" : "10/13 (76%)"}</td>
+                          <tr key={c.id}>
+                            <td className="py-2 px-3 border-r border-gray-200">{index + 1}</td>
+                            <td className="py-2 px-3 font-bold border-r border-gray-200">{c.name}</td>
+                            <td className="py-2 px-3 text-center border-r border-gray-200">8/8 (100%)</td>
+                            <td className="py-2 px-3 text-center border-r border-gray-200">{hasLogs ? "24/28 (85%)" : "20/28 (71%)"}</td>
+                            <td className="py-2 px-3 text-center border-r border-gray-200">{hasLogs ? "12/13 (92%)" : "10/13 (76%)"}</td>
                             <td className="py-2 px-3 text-center font-bold text-pink-600">{hasLogs ? "90%" : "78%"}</td>
                           </tr>
                         );
@@ -388,259 +421,142 @@ export default function ReportsPage() {
           </div>
         )}
 
-        {/* =========================================================================
-            2-Р ТАЙЛАН: АЖИГЛАЛТ БОЛОН ЯРИЛЦЛАГЫГ ҮНДЭСЛЭСЭН ТАЙЛАН (ДЭЛГЭРЭНГҮЙ ДҮГНЭЛТТЭЙ)
-           ========================================================================= */}
+        {/* 2-Р ТАЙЛАН: АЖИГЛАЛТ БОЛОН ЯРИЛЦЛАГЫГ ҮНДЭСЛЭСЭН ТАЙЛАН */}
         {reportType === "logs" && (
           <div className="space-y-6">
             {reportScope === "single" ? (
-              /* ===== 1. ХҮҮХЭД БҮРИЙН ГАНЦААРЧИЛСАН ДЭЛГЭРЭНГҮЙ БОДИТ ДҮГНЭЛТ ===== */
               <div className="space-y-6">
                 <div className="border-b-2 border-pink-500 pb-4 flex justify-between items-end">
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">{selectedChild || "Хүүхэд сонгогдоогүй байна"}</h2>
-                    <p className="text-xs font-bold text-pink-600 mt-1 flex items-center gap-1">
-                      <FileText size={13} /> {selectedMonthName} сарын Ажиглалт & Ярилцлагын дэлгэрэнгүй бодит дүгнэлтийн тайлан
+                    <h2 className="header">{selectedChild || "Хүүхэд сонгогдоогүй байна"}</h2>
+                    <p className="subtitle">
+                      {selectedMonthName} сарын Ажиглалт & Ярилцлагын дэлгэрэнгүй бодит дүгнэлтийн тайлан
                     </p>
                   </div>
                   <div className="text-right text-xs text-gray-500">
-                    <p>Ажиглалт: <span className="font-bold text-pink-600">{currentObs.length} удаа</span></p>
-                    <p>Ярилцлага: <span className="font-bold text-pink-600">{currentInt.length} удаа</span></p>
-                    <p>Хавсаргасан медиа: <span className="font-bold text-pink-600">{totalSingleMediaCount} файл</span></p>
+                    <p>Ажиглалт: <strong>{currentObs.length} удаа</strong></p>
+                    <p>Ярилцлага: <strong>{currentInt.length} удаа</strong></p>
+                    <p>Хавсаргасан медиа: <strong>{totalSingleMediaCount} файл</strong></p>
                   </div>
                 </div>
 
-                {/* ДЭЛГЭРЭНГҮЙ АНАЛИЗ БА ДҮГНЭЛТИЙН КАРТ */}
-                <div className="bg-gradient-to-r from-pink-500 to-pink-600 text-white p-6 rounded-2xl space-y-4 shadow-sm print:bg-none print:text-black print:border print:border-gray-300">
-                  <h3 className="text-sm font-bold flex items-center gap-2 border-b border-pink-400/50 pb-2">
-                    <Sparkles size={18} /> {selectedMonthName} сарын Ажиглалт & Медиа Баримтад тулгуурласан Дэлгэрэнгүй Дүгнэлт
+                <div className="summary-box space-y-2">
+                  <h3 className="text-sm font-bold text-pink-700">
+                    📌 {selectedMonthName} сарын Ажиглалт & Медиа Баримтад тулгуурласан Дэлгэрэнгүй Дүгнэлт
                   </h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                    <div className="bg-white/10 p-3 rounded-xl space-y-1.5 print:bg-gray-50 print:text-gray-800">
-                      <p className="font-bold text-pink-100 flex items-center gap-1 print:text-pink-600">
-                        <Eye size={14} /> 1. Ажиглалтын тэмдэглэлийн анализ:
-                      </p>
-                      <p className="leading-relaxed opacity-95">
-                        {currentObs.length > 0
-                          ? `Суралцагчид хийсэн ${currentObs.length} удаагийн ажиглалтын тэмдэглэлээс харахад: "${currentObs.map(o => o.note).join(" ")
-                              .slice(0, 180)}..." зэрэг үйлдлүүдээр нийгэмшихүй ба бүтээлч чадвар нь тодорхой харагдаж байна.`
-                          : "Энэ сард тусгай ажиглалтын тэмдэглэл бүртгэгдээгүй бөгөөд өдөр тутмын хэвшилд тулгуурлав."}
-                      </p>
-                    </div>
-
-                    <div className="bg-white/10 p-3 rounded-xl space-y-1.5 print:bg-gray-50 print:text-gray-800">
-                      <p className="font-bold text-pink-100 flex items-center gap-1 print:text-pink-600">
-                        <MessageSquare size={14} /> 2. Ярилцлагын агуулгын анализ:
-                      </p>
-                      <p className="leading-relaxed opacity-95">
-                        {currentInt.length > 0
-                          ? `Хүүхэд болон эцэг эхтэй хийсэн ${currentInt.length} удаагийн ярилцлагаар: "${currentInt.map(i => i.note).join(" ")
-                              .slice(0, 180)}..." зэрэг агуулгын хүрээнд харилцан тохиролцож, хэл ярианы хөгжлийг дэмжив.`
-                          : "Энэ сард тусгай ярилцлагын бүртгэл хийгдээгүй байна."}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 border-t border-pink-400/40 text-xs leading-relaxed space-y-1.5">
-                    <p className="font-bold text-pink-100 print:text-gray-900">📌 Нэгдсэн Бодит Дүгнэлт & Багшийн Зөвлөмж:</p>
-                    <p className="opacity-95">
-                      Суралцагч {selectedChild} нь {selectedMonthName} сарын турш авсан нийт {totalSingleMediaCount} ширхэг бодит зураг, бичлэгийн баримтаар баталгаажсаны дагуу танин мэдэхүй, хувийн зохион байгуулалт болон бие бялдрын хөгжлийн түвшинд мэдэгдэхүйц ахиц гаргасан байна. Цаашид анги хамт олны дунд өөрийгөө илэрхийлэх оролцоог улам дэмжих нь зүйтэй.
-                    </p>
-                  </div>
+                  <p className="text-xs text-gray-800 leading-relaxed">
+                    <strong>• Ажиглалтын анализ:</strong> {currentObs.length > 0 ? currentObs.map(o => o.note).join(" ").slice(0, 200) + "..." : "Тусгай тэмдэглэлгүй."}
+                  </p>
+                  <p className="text-xs text-gray-800 leading-relaxed">
+                    <strong>• Ярилцлагын анализ:</strong> {currentInt.length > 0 ? currentInt.map(i => i.note).join(" ").slice(0, 200) + "..." : "Тусгай тэмдэглэлгүй."}
+                  </p>
+                  <p className="text-xs text-gray-900 font-bold border-t border-pink-200 pt-2 mt-2">
+                    • Багшийн нэгдсэн дүгнэлт: Суралцагч {selectedChild} нь {selectedMonthName} сарын турш цуглуулсан {totalSingleMediaCount} бодит баримтаар танин мэдэхүй болон нийгэмшихүйн хөгжилд тодорхой ахиц үзүүлсэн байна.
+                  </p>
                 </div>
 
-                {/* АЖИГЛАЛТЫН ЖАГСААЛТ */}
-                <div className="space-y-3 pt-2">
-                  <h3 className="text-xs font-bold text-gray-800 flex items-center gap-1.5 border-b border-gray-100 pb-2">
-                    <Eye className="text-pink-500" size={16} /> 1. Багшийн бодит ажиглалтын бүртгэлүүд ({currentObs.length})
+                {/* АЖИГЛАЛТУУД */}
+                <div className="space-y-3">
+                  <h3 className="text-xs font-bold text-gray-800 border-b border-gray-200 pb-1">
+                    1. Ажиглалтын тэмдэглэлүүд ({currentObs.length})
                   </h3>
                   {currentObs.length > 0 ? (
-                    <div className="space-y-3">
-                      {currentObs.map((obs, idx) => (
-                        <div key={idx} className="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-2">
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="font-bold text-pink-600">Ажиглалт #{idx + 1}</span>
-                            <span className="text-gray-400">{obs.date}</span>
-                          </div>
-                          <p className="text-xs text-gray-700 leading-relaxed">{obs.note}</p>
-                          {obs.mediaList && obs.mediaList.length > 0 && (
-                            <div className="pt-2">
-                              <span className="text-[11px] font-semibold text-gray-500 mb-1.5 block">Хавсаргасан медиа баримтууд ({obs.mediaList.length}):</span>
-                              <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
-                                {obs.mediaList.map((m: any, mIdx: number) => (
-                                  <div key={mIdx} className="aspect-video rounded-lg overflow-hidden border border-gray-300 bg-black/5">
-                                    {m.type === "image" ? (
-                                      <img src={m.url} alt="obs" className="w-full h-full object-cover" />
-                                    ) : (
-                                      <video src={m.url} controls className="w-full h-full object-cover" />
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
+                    currentObs.map((obs, idx) => (
+                      <div key={idx} className="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-1">
+                        <div className="flex justify-between text-xs font-bold text-pink-600">
+                          <span>Ажиглалт #{idx + 1}</span>
+                          <span className="text-gray-400 font-normal">{obs.date}</span>
                         </div>
-                      ))}
-                    </div>
+                        <p className="text-xs text-gray-700">{obs.note}</p>
+                      </div>
+                    ))
                   ) : (
-                    <p className="text-xs text-gray-400 py-4 text-center bg-gray-50 rounded-xl">
-                      Энэ сард бүртгэгдсэн ажиглалтын тэмдэглэл байхгүй байна.
-                    </p>
+                    <p className="text-xs text-gray-400">Тэмдэглэл байхгүй.</p>
                   )}
                 </div>
 
-                {/* ЯРИЛЦЛАГЫН ЖАГСААЛТ */}
-                <div className="space-y-3 pt-4">
-                  <h3 className="text-xs font-bold text-gray-800 flex items-center gap-1.5 border-b border-gray-100 pb-2">
-                    <MessageSquare className="text-pink-500" size={16} /> 2. Ярилцлагын тэмдэглэлийн бүртгэлүүд ({currentInt.length})
+                {/* ЯРИЛЦЛАГУУД */}
+                <div className="space-y-3 pt-2">
+                  <h3 className="text-xs font-bold text-gray-800 border-b border-gray-200 pb-1">
+                    2. Ярилцлагын тэмдэглэлүүд ({currentInt.length})
                   </h3>
                   {currentInt.length > 0 ? (
-                    <div className="space-y-3">
-                      {currentInt.map((item, idx) => (
-                        <div key={idx} className="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-2">
-                          <div className="flex justify-between items-center text-xs">
-                            <div>
-                              <span className="font-bold text-pink-600">Ярилцлага #{idx + 1}</span>
-                              <span className="text-gray-500 text-[11px] ml-2">({item.type})</span>
-                            </div>
-                            <span className="text-gray-400">{item.date}</span>
-                          </div>
-                          <p className="text-xs text-gray-700 leading-relaxed">{item.note}</p>
-                          {item.mediaList && item.mediaList.length > 0 && (
-                            <div className="pt-2">
-                              <span className="text-[11px] font-semibold text-gray-500 mb-1.5 block">Хавсаргасан медиа баримтууд ({item.mediaList.length}):</span>
-                              <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
-                                {item.mediaList.map((m: any, mIdx: number) => (
-                                  <div key={mIdx} className="aspect-video rounded-lg overflow-hidden border border-gray-300 bg-black/5">
-                                    {m.type === "image" ? (
-                                      <img src={m.url} alt="int" className="w-full h-full object-cover" />
-                                    ) : (
-                                      <video src={m.url} controls className="w-full h-full object-cover" />
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
+                    currentInt.map((item, idx) => (
+                      <div key={idx} className="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-1">
+                        <div className="flex justify-between text-xs font-bold text-pink-600">
+                          <span>Ярилцлага #{idx + 1} ({item.type})</span>
+                          <span className="text-gray-400 font-normal">{item.date}</span>
                         </div>
-                      ))}
-                    </div>
+                        <p className="text-xs text-gray-700">{item.note}</p>
+                      </div>
+                    ))
                   ) : (
-                    <p className="text-xs text-gray-400 py-4 text-center bg-gray-50 rounded-xl">
-                      Энэ сард бүртгэгдсэн ярилцлагын тэмдэглэл байхгүй байна.
-                    </p>
+                    <p className="text-xs text-gray-400">Тэмдэглэл байхгүй.</p>
                   )}
                 </div>
               </div>
             ) : (
-              /* ===== 2. АНГИ НЭГТГЭЛИЙН ДЭЛГЭРЭНГҮЙ БОДИТ ДҮГНЭЛТ ===== */
               <div className="space-y-6">
                 <div className="border-b-2 border-pink-500 pb-4 flex justify-between items-end">
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">Бүлгийн Ажиглалт & Ярилцлагын Нэгдсэн Дэлгэрэнгүй Тайлан 📑</h2>
-                    <p className="text-xs font-bold text-pink-600 mt-1 flex items-center gap-1">
-                      <Calendar size={13} /> {selectedMonthName} сар — Ангийн нийт хүүхдүүдийн бодит ажиглалт ба медиа нэгтгэл
+                    <h2 className="header">Бүлгийн Ажиглалт & Ярилцлагын Нэгдсэн Тайлан</h2>
+                    <p className="subtitle">
+                      {selectedMonthName} сар — Нийт хүүхдүүдийн бодит ажиглалт ба медиа нэгтгэл
                     </p>
                   </div>
                   <div className="text-right text-xs text-gray-500">
-                    <p>Нийт ажиглалт: <span className="font-bold text-pink-600">{monthObs.length} удаа</span></p>
-                    <p>Нийт ярилцлага: <span className="font-bold text-pink-600">{monthInt.length} удаа</span></p>
-                    <p>Нийт бодит медиа: <span className="font-bold text-pink-600">{totalClassMediaCount} файл</span></p>
+                    <p>Ажиглалт: <strong>{monthObs.length} удаа</strong></p>
+                    <p>Ярилцлага: <strong>{monthInt.length} удаа</strong></p>
+                    <p>Медиа файл: <strong>{totalClassMediaCount} ширхэг</strong></p>
                   </div>
                 </div>
 
-                {/* БҮЛГИЙН НИЙТ АЖИГЛАЛТ, ЯРИЛЦЛАГАД ТУЛГУУРЛАСАН ДЭЛГЭРЭНГҮЙ ДҮГНЭЛТ */}
-                <div className="bg-gradient-to-r from-pink-500 to-pink-600 text-white p-6 rounded-2xl space-y-4 shadow-sm print:bg-none print:text-black print:border print:border-gray-300">
-                  <h3 className="text-sm font-bold flex items-center gap-2 border-b border-pink-400/50 pb-2">
-                    <TrendingUp size={18} /> {selectedMonthName} сарын Анги Бүлгийн Нэгдсэн Ажиглалт & Бодит Дүгнэлт
+                <div className="summary-box">
+                  <h3 className="text-sm font-bold text-pink-700">
+                    📌 {selectedMonthName} сарын Анги Бүлгийн Нэгдсэн Ажиглалт & Дүгнэлт
                   </h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                    <div className="bg-white/10 p-3 rounded-xl space-y-1 print:bg-gray-50 print:text-gray-800">
-                      <p className="font-bold text-pink-100 print:text-pink-600">📊 1. Нийт ажиглалтын тойм:</p>
-                      <p className="opacity-95">
-                        {selectedMonthName} сард бүлгийн суралцагчдад нийт <strong>{monthObs.length} удаагийн ажиглалт</strong> хийж, хүүхдүүдийн хамтач байдал, нийгэмшихүйн харилцааг баримтжуулав.
-                      </p>
-                    </div>
-
-                    <div className="bg-white/10 p-3 rounded-xl space-y-1 print:bg-gray-50 print:text-gray-800">
-                      <p className="font-bold text-pink-100 print:text-pink-600">💬 2. Ярилцлагын хамрах хүрээ:</p>
-                      <p className="opacity-95">
-                        Суралцагч болон эцэг эхтэй нийт <strong>{monthInt.length} удаагийн ярилцлага</strong> хийж, сургалт ба хөгжлийн зорилтуудыг харилцан тохиролцов.
-                      </p>
-                    </div>
-
-                    <div className="bg-white/10 p-3 rounded-xl space-y-1 print:bg-gray-50 print:text-gray-800">
-                      <p className="font-bold text-pink-100 print:text-pink-600">🖼️ 3. Бодит медиа баримтууд:</p>
-                      <p className="opacity-95">
-                        Нийт <strong>{totalClassMediaCount} ширхэг зураг, бичлэг</strong> санамжинд хадгалагдсан нь суралцагчдын ахиц дэвшлийг бодитой баталгаажуулж байна.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 border-t border-pink-400/40 text-xs leading-relaxed space-y-1.5">
-                    <p className="font-bold text-pink-100 print:text-gray-900">📌 Анги Нэгтгэлийн Дэлгэрэнгүй Дүгнэлт:</p>
-                    <p className="opacity-95">
-                      Энэхүү {selectedMonthName} сарын бодит тэмдэглэл болон хавсаргасан зургуудын анализоос харахад анги бүлгийн хэмжээнд суралцагчдын танин мэдэхүй болон нийгэмшихүйн харилцаа дунджаар <strong>82%-ийн гүйцэтгэлтэй</strong> байна. Ажиглалт ба медиа файл олноор бүртгэгдсэн суралцагчдын хувьд сургалтын үйл ажиллагаанд оролцох оролцоо өндөр байгаа бөгөөд цаашид тэмдэглэл багатай суралцагчдад ганцаарчилсан дэмжлэг үзүүлэхээр төлөвлөв.
-                    </p>
-                  </div>
+                  <p className="text-xs text-gray-800 leading-relaxed mt-1">
+                    Бүлгийн хэмжээнд хийгдсэн {monthObs.length} ажиглалт ба {monthInt.length} ярилцлагад үндэслэн суралцагчдын сургалтын үйл ажиллагаанд оролцох оролцоо дунджаар <strong>82%</strong>-ийн гүйцэтгэлтэй байна.
+                  </p>
                 </div>
 
-                {/* АНГИ НЭГТГЭЛИЙН ХҮСНЭГТ */}
-                <div className="space-y-3">
-                  <h3 className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                    <Users size={16} className="text-pink-500" /> Бүлгийн суралцагч бүрийн ажиглалт, ярилцлага ба бодит медиагийн дэлгэрэнгүй нэгтгэл
-                  </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse border border-gray-200">
+                    <thead>
+                      <tr className="bg-gray-100 text-[11px] font-bold text-gray-700 border-b border-gray-200">
+                        <th className="py-2.5 px-3 w-10 border-r border-gray-200">№</th>
+                        <th className="py-2.5 px-3 border-r border-gray-200">Суралцагчийн Нэр</th>
+                        <th className="py-2.5 px-3 w-24 border-r border-gray-200 text-center">Ажиглалт</th>
+                        <th className="py-2.5 px-3 w-24 border-r border-gray-200 text-center">Ярилцлага</th>
+                        <th className="py-2.5 px-3 w-32 border-r border-gray-200 text-center">Медиа Файл</th>
+                        <th className="py-2.5 px-3 w-36 text-center">Дүгнэлт</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 text-xs text-gray-700">
+                      {children.map((c, index) => {
+                        const fullName = `${c.name} (${c.group})`;
+                        const cObs = monthObs.filter((o) => o.child === fullName);
+                        const cInt = monthInt.filter((i) => i.child === fullName);
+                        const totalMedia =
+                          cObs.reduce((acc, curr) => acc + (curr.mediaList?.length || 0), 0) +
+                          cInt.reduce((acc, curr) => acc + (curr.mediaList?.length || 0), 0);
+                        const hasData = cObs.length > 0 || cInt.length > 0;
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse border border-gray-200">
-                      <thead>
-                        <tr className="bg-gray-100 text-[11px] font-bold text-gray-700 border-b border-gray-200">
-                          <th className="py-2.5 px-3 w-10 border-r border-gray-200">№</th>
-                          <th className="py-2.5 px-3 border-r border-gray-200">Суралцагчийн Нэр</th>
-                          <th className="py-2.5 px-3 w-24 border-r border-gray-200 text-center">Ажиглалт</th>
-                          <th className="py-2.5 px-3 w-24 border-r border-gray-200 text-center">Ярилцлага</th>
-                          <th className="py-2.5 px-3 w-32 border-r border-gray-200 text-center">Бодит Медиа Файл</th>
-                          <th className="py-2.5 px-3 w-36 text-center">Бодит Баримтын Дүгнэлт</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200 text-xs text-gray-700">
-                        {children.map((c, index) => {
-                          const fullName = `${c.name} (${c.group})`;
-                          const cObs = monthObs.filter((o) => o.child === fullName);
-                          const cInt = monthInt.filter((i) => i.child === fullName);
-                          const totalMedia =
-                            cObs.reduce((acc, curr) => acc + (curr.mediaList?.length || 0), 0) +
-                            cInt.reduce((acc, curr) => acc + (curr.mediaList?.length || 0), 0);
-                          const hasData = cObs.length > 0 || cInt.length > 0;
-
-                          return (
-                            <tr key={c.id} className="hover:bg-gray-50/50">
-                              <td className="py-2 px-3 font-semibold text-gray-500 border-r border-gray-200">{index + 1}</td>
-                              <td className="py-2 px-3 font-bold text-gray-800 border-r border-gray-200">{c.name}</td>
-                              <td className="py-2 px-3 text-center border-r border-gray-200 font-bold text-pink-600">{cObs.length} удаа</td>
-                              <td className="py-2 px-3 text-center border-r border-gray-200 font-bold text-pink-600">{cInt.length} удаа</td>
-                              <td className="py-2 px-3 text-center border-r border-gray-200 font-bold text-emerald-600">
-                                {totalMedia > 0 ? `${totalMedia} зураг/бичлэг` : "Медиагүй"}
-                              </td>
-                              <td className="py-2 px-3 text-center">
-                                <span
-                                  className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                    hasData
-                                      ? "bg-emerald-100 text-emerald-700"
-                                      : "bg-gray-100 text-gray-500"
-                                  }`}
-                                >
-                                  {hasData ? "Бодит баримтаар ахисан" : "Өдөр тутмын ажиглалттай"}
-                                </span>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+                        return (
+                          <tr key={c.id}>
+                            <td className="py-2 px-3 border-r border-gray-200">{index + 1}</td>
+                            <td className="py-2 px-3 font-bold border-r border-gray-200">{c.name}</td>
+                            <td className="py-2 px-3 text-center border-r border-gray-200 font-bold">{cObs.length} удаа</td>
+                            <td className="py-2 px-3 text-center border-r border-gray-200 font-bold">{cInt.length} удаа</td>
+                            <td className="py-2 px-3 text-center border-r border-gray-200">{totalMedia} файл</td>
+                            <td className="py-2 px-3 text-center font-bold">
+                              {hasData ? "Бодит баримтаар ахисан" : "Өдөр тутмын ажиглалттай"}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
@@ -648,7 +564,7 @@ export default function ReportsPage() {
         )}
 
         {/* Гарын үсэг */}
-        <div className="pt-6 border-t border-gray-200 flex justify-between items-center text-xs text-gray-500">
+        <div className="pt-8 border-t border-gray-300 flex justify-between items-center text-xs text-gray-600">
           <div>
             <p>ҮНЭЛГЭЭ ГАРГАСАН БАГШ: .................................... / /</p>
           </div>
@@ -656,7 +572,6 @@ export default function ReportsPage() {
             <p>Огноо: {new Date().toISOString().split("T")[0]}</p>
           </div>
         </div>
-
       </div>
     </div>
   );
