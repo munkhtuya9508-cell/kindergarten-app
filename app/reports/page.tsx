@@ -157,12 +157,12 @@ export default function ReportsPage() {
 
   const selectedMonthName = MONTHS.find((m) => m.value === selectedMonth)?.label || "";
 
-  // 1. ХЭВЛЭХ ҮЙЛДЭЛ
+  // 1. ХЭВЛЭХ ҮЙЛДЭЛ (Тусдаа - Браузерын print цонх)
   const handlePrint = () => {
     window.print();
   };
 
-  // 2. PDF ТАТАХ ҮЙЛДЭЛ
+  // 2. PDF ТАТАХ ҮЙЛДЭЛ (Тусдаа - html2pdf.js)
   const handleDownloadPDF = async () => {
     const reportElement = document.getElementById("printable-report");
     if (!reportElement) return;
@@ -186,7 +186,7 @@ export default function ReportsPage() {
       await html2pdf().set(opt).from(reportElement).save();
     } catch (error) {
       console.error("PDF үүсгэхэд алдаа гарлаа:", error);
-      alert("PDF үүсгэхэд алдаа гарлаа. Та 'Хэвлэх' товчийг ашиглан PDF хэлбэрээр хадгална уу.");
+      alert("PDF үүсгэхэд алдаа гарлаа. Та 'Хэвлэх' товчийг ашиглаж болно.");
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -201,9 +201,9 @@ export default function ReportsPage() {
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
       <head>
         <meta charset='utf-8'>
-        <title>Суралцагчдын хөгжлийн нэгдсэн тайлан</title>
+        <title>Тайлан</title>
         <style>
-          body { font-family: 'Arial', sans-serif; font-size: 11pt; line-height: 1.6; color: #111827; }
+          body { font-family: 'Arial', sans-serif; font-size: 11pt; line-height: 1.5; color: #111827; }
           .header { font-size: 16pt; font-weight: bold; color: #db2777; margin-bottom: 5px; }
           .subtitle { font-size: 11pt; font-weight: bold; color: #4b5563; margin-bottom: 15px; }
           .summary-box { background-color: #fdf2f8; border: 1px solid #fbcfe8; padding: 12px; margin-bottom: 15px; border-radius: 6px; }
@@ -242,7 +242,7 @@ export default function ReportsPage() {
               Тайлан ба Үнэлгээ 📜
             </h1>
             <p className="text-xs text-gray-400 mt-1">
-              Бодит баримт, ажиглалт ба ярилцлагад үндэслэсэн хөгжлийн нэгдсэн тайлан
+              Бодит зураг, бичлэг болон тэмдэглэлд тулгуурласан суралцагч бүрийн дэлгэрэнгүй нэгтгэсэн тайлан
             </p>
           </div>
 
@@ -308,7 +308,7 @@ export default function ReportsPage() {
               <Download size={15} /> Word (.docx)
             </button>
 
-            {/* PDF ТАТАХ */}
+            {/* PDF ТАТАХ (ТУСДАА УЛААН ТОВЧ) */}
             <button
               onClick={handleDownloadPDF}
               disabled={isGeneratingPdf}
@@ -317,7 +317,7 @@ export default function ReportsPage() {
               <FileDown size={15} /> {isGeneratingPdf ? "PDF бэлтгэж байна..." : "PDF татах"}
             </button>
 
-            {/* ХЭВЛЭХ */}
+            {/* ХЭВЛЭХ (ТУСДАА ЯГААН ТОВЧ) */}
             <button
               onClick={handlePrint}
               className="bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition cursor-pointer"
@@ -368,28 +368,28 @@ export default function ReportsPage() {
                   <div>
                     <h2 className="header">Бүлгийн ажиглалт ба ярилцлагын нэгдсэн тайлан 📑</h2>
                     <p className="subtitle">
-                      {selectedMonthName} — Суралцагчдын хөгжлийн ажиглалт, ярилцлага ба медиа баримтын нэгтгэл
+                      {selectedMonthName} — Ангийн нийт хүүхдүүдийн бодит ажиглалт, ярилцлага ба медиа баримтын нэгтгэл
                     </p>
                   </div>
                   <div className="text-right text-xs text-gray-500">
                     <p>Нийт суралцагч: <strong>{children.length}</strong></p>
                     <p>Ажиглалтын тоо: <strong>{monthObs.length} удаа</strong></p>
                     <p>Ярилцлагын тоо: <strong>{monthInt.length} удаа</strong></p>
-                    <p>Бодит медиа баримт: <strong>{totalClassMediaCount} нэгж</strong></p>
+                    <p>Бодит медиа: <strong>{totalClassMediaCount} нэгж</strong></p>
                   </div>
                 </div>
 
-                {/* АНГИЙН ЕРӨНХИЙ НЭГДСЭН ДҮГНЭЛТ */}
+                {/* НЭГДСЭН ДҮГНЭЛТИЙН ХЭСЭГ (Үг хэллэг, найруулгын засал хийсэн) */}
                 <div className="summary-box space-y-3">
                   <h3 className="text-sm font-bold text-pink-700 flex items-center gap-2">
-                    <TrendingUp size={18} /> {selectedMonthName} — Анги бүлгийн хөгжлийн ерөнхий төлөв ба багшийн нэгдсэн дүгнэлт
+                    <TrendingUp size={18} /> {selectedMonthName} — Анги бүлгийн ерөнхий ажиглалт ба багшийн дүгнэлт
                   </h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs border-y border-pink-200/60 py-3 my-2">
                     <div>
                       <p className="font-bold text-pink-600">📊 1. Ажиглалтын тойм аналитик:</p>
                       <p className="text-gray-700 mt-1 leading-relaxed">
-                        Тайлант {selectedMonthName}д суралцагчдад нийт <strong>{monthObs.length} удаагийн ажиглалт</strong> хийж, тэдний өөртөө үйлчлэх бие даасан хэвшил, нарийн болон бүдүүн моторт хөдөлгөөний координаци, анги хамт олонч харилцааг бодитой баримтжуулав.
+                        Тайлант {selectedMonthName}д суралцагчдад нийт <strong>{monthObs.length} удаагийн ажиглалт</strong> хийж, тэдний өөртөө үйлчлэх бие даасан хэвшил, нарийн ба бүдүүн моторт хөдөлгөөний координаци, анги хамт олонч харилцааг бодитой баримтжуулав.
                       </p>
                     </div>
 
